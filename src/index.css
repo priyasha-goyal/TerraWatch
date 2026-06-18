@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-heading: 'Outfit', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased font-sans selection:bg-mint-500/30 selection:text-mint-200 overflow-x-hidden;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(20, 83, 45, 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(6, 78, 59, 0.15) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(2, 44, 34, 0.25) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    @apply tracking-tight;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-950;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-forest-800 rounded-full hover:bg-forest-700 transition-colors;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  @apply bg-slate-900/60 backdrop-blur-md border border-forest-900/50 shadow-xl;
+}
+
+.glass-panel-hover {
+  @apply hover:bg-slate-900/80 hover:border-forest-700/50 hover:shadow-mint-950/20 transition-all duration-300;
+}
+
+/* Pulsing animated dot for maps */
+@keyframes ping-slow {
+  75%, 100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+.animate-ping-slow {
+  animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Custom animations for modern dashboard cards */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
