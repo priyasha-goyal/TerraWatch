@@ -20,19 +20,19 @@ export interface SpeciesObservation {
 
 export const biodiversityServiceShell = {
   getEcosystemMetrics: async (): Promise<ImpactMetrics> => {
-    console.log('Biodiversity Service: Calculating ecosystem health indices...');
+    console.log('Biodiversity Service: Fetching ecosystem metrics placeholder...');
     return {
-      totalReports: 0,
-      resolvedReports: 0,
-      totalWasteRemovedKg: 0,
-      activeVolunteers: 0,
-      biodiversityScore: 72, // Baseline health score
-      ecoCoinsRewarded: 0,
+      totalReports: 2,
+      resolvedReports: 1,
+      totalWasteRemovedKg: 450,
+      activeVolunteers: 12,
+      biodiversityScore: 78,
+      ecoCoinsRewarded: 250,
     };
   },
   
   getProtectedSpeciesNearby: async (lat: number, lng: number): Promise<SpeciesObservation[]> => {
-    console.log(`Biodiversity Service: Checking protected species surrounding coordinates (${lat}, ${lng})...`);
+    console.log(`Biodiversity Service: Checking protected species surrounding coordinates (${lat}, ${lng}) placeholder...`);
     return [];
   }
 };

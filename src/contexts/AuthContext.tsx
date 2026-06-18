@@ -3,10 +3,10 @@ import type { User } from '../types';
 
 interface AuthContextType {
   user: User | null;
+  isAuthenticated: boolean;
   isLoading: boolean;
-  loginWithGoogle: (role?: 'USER' | 'MUNICIPALITY' | 'ADMIN') => Promise<void>;
+  login: () => Promise<void>;
   logout: () => Promise<void>;
-  updateEcoCoins: (amount: number) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -16,7 +16,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Check local storage for session simulation
     const storedUser = localStorage.getItem('tw_user');
     if (storedUser) {
       try {
@@ -28,43 +27,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const loginWithGoogle = async (role: 'USER' | 'MUNICIPALITY' | 'ADMIN' = 'USER') => {
-    setIsLoading(true);
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    
-    const mockUser: User = {
+  const login = async () => {
+    const defaultUser: User = {
       id: 'usr-google-101',
-      email: role === 'ADMIN' ? 'admin@terrawatch.gov' : role === 'MUNICIPALITY' ? 'officer@city.gov' : 'volunteer.green@gmail.com',
-      name: role === 'ADMIN' ? 'Admin Controller' : role === 'MUNICIPALITY' ? 'Municipal Waste Inspector' : 'Eco Volunteer',
-      role,
-      avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&auto=format&q=80',
+      email: 'admin@terrawatch.org',
+      name: 'TerraWatch Administrator',
+      role: 'ADMIN',
       ecoCoinBalance: 250,
     };
-    
-    setUser(mockUser);
-    localStorage.setItem('tw_user', JSON.stringify(mockUser));
-    setIsLoading(false);
+    setUser(defaultUser);
+    localStorage.setItem('tw_user', JSON.stringify(defaultUser));
   };
 
   const logout = async () => {
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 400));
     setUser(null);
     localStorage.removeItem('tw_user');
-    setIsLoading(false);
   };
 
-  const updateEcoCoins = (amount: number) => {
-    if (user) {
-      const updated = { ...user, ecoCoinBalance: user.ecoCoinBalance + amount };
-      setUser(updated);
-      localStorage.setItem('tw_user', JSON.stringify(updated));
-    }
-  };
+  const isAuthenticated = !!user;
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, loginWithGoogle, logout, updateEcoCoins }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

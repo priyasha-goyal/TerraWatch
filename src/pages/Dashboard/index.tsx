@@ -9,6 +9,7 @@ import type { ActivityItem } from '../../components/dashboard/ActivityCard';
 import { ReportCard } from '../../components/reports/ReportCard';
 import type { Report } from '../../types';
 import { Plus, Layers, ShieldAlert } from 'lucide-react';
+import { reportsServiceShell } from '../../services/reports';
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -23,85 +24,51 @@ export const DashboardPage: React.FC = () => {
       return;
     }
 
-    // Set mock dashboard data
-    const mockReports: Report[] = [
-      {
-        id: 'rep-101',
-        reporterId: user.id,
-        title: 'Large pile of plastic bottles near riparian buffer',
-        description: 'Over 50 discarded plastic soft drink bottles and packaging materials floating on the shoreline, threatening waterfowl nesting grounds.',
-        wasteType: 'PLASTIC',
-        severity: 'MEDIUM',
-        latitude: 43.64532,
-        longitude: -79.37812,
-        address: 'High Park South Pond Boardwalk, Toronto, ON',
-        imageUrl: 'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=600&auto=format&fit=crop&q=80',
-        status: 'INVESTIGATING',
-        aiConfidence: 0.94,
-        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: 'rep-102',
-        reporterId: user.id,
-        title: 'Toxic battery fluid drums disposed illegally',
-        description: 'Two large steel drums containing industrial battery casings and chemical leakage dumped off the trail. Strong solvent odors.',
-        wasteType: 'CHEMICAL',
-        severity: 'CRITICAL',
-        latitude: 43.66782,
-        longitude: -79.41245,
-        address: 'Ravine Trail Entrance, Cedarvale Park, Toronto, ON',
-        imageUrl: 'https://images.unsplash.com/photo-1605600656308-972a4e843af0?w=600&auto=format&fit=crop&q=80',
-        status: 'CLEANUP_SCHEDULED',
-        aiConfidence: 0.88,
-        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        updatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-      }
-    ];
+    let isMounted = true;
 
-    const mockActivities: ActivityItem[] = [
-      {
-        id: 'act-1',
-        type: 'ECOCOIN',
-        title: 'Awarded 50 EcoCoins',
-        subtitle: 'Validation of plastic dumping report #rep-101',
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        value: '+50 Coins',
-      },
-      {
-        id: 'act-2',
-        type: 'REPORT',
-        title: 'Report Logged',
-        subtitle: 'Toxic battery fluid drums (#rep-102)',
-        timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: 'act-3',
-        type: 'CLEANUP',
-        title: 'Cleanup Event Logged',
-        subtitle: 'Cleaned trail pathway beside high park buffer',
-        timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-        value: '12 volunteers',
-      }
-    ];
-
-    // Load from local storage if exists to reflect new creations dynamically
-    const storedReports = localStorage.getItem('tw_reports');
-    if (storedReports) {
+    const loadDashboardData = async () => {
       try {
-        const parsed = JSON.parse(storedReports) as Report[];
-        // filter user's reports or merge
-        const userReports = parsed.filter(r => r.reporterId === user.id);
-        const merged = [...userReports, ...mockReports.filter(mr => !userReports.some(ur => ur.id === mr.id))];
-        setReports(merged);
-      } catch (e) {
-        setReports(mockReports);
-      }
-    } else {
-      setReports(mockReports);
-    }
+        const [fetchedReports, fetchedLogs] = await Promise.all([
+          reportsServiceShell.getReports(),
+          reportsServiceShell.getCleanupLogs(),
+        ]);
 
-    setActivities(mockActivities);
+        if (!isMounted) return;
+
+        setReports(fetchedReports);
+
+        const reportActivities: ActivityItem[] = fetchedReports.map(r => ({
+          id: `act-rep-${r.id}`,
+          type: 'REPORT',
+          title: 'Incident Reported',
+          subtitle: `${r.title} (#${r.id})`,
+          timestamp: r.createdAt,
+        }));
+
+        const cleanupActivities: ActivityItem[] = fetchedLogs.map(l => ({
+          id: `act-cln-${l.id}`,
+          type: 'CLEANUP',
+          title: 'Habitat Cleanup Logged',
+          subtitle: `${l.reportTitle} - ${l.description}`,
+          timestamp: l.date,
+          value: `${l.volunteersCount} volunteers`,
+        }));
+
+        const allActivities = [...reportActivities, ...cleanupActivities].sort(
+          (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+
+        setActivities(allActivities);
+      } catch (e) {
+        console.error('Failed to load dashboard data:', e);
+      }
+    };
+
+    loadDashboardData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [user, navigate]);
 
   if (!user) return null;

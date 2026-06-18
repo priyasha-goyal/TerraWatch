@@ -17,17 +17,9 @@ export interface AIDetectionResult {
 }
 
 export const aiServiceShell = {
-  detectWaste: async (imageFile: File): Promise<AIDetectionResult> => {
-    console.log('AI Service: Running vision analysis on', imageFile.name);
-    // Mimics delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    return {
-      wasteType: 'PLASTIC',
-      severity: 'MEDIUM',
-      confidence: 0.89,
-      detectedItems: ['Plastic bottles', 'Discarded packaging', 'Polystyrene containers'],
-      ecologicalThreatNotes: 'High risk of microplastic degradation and minor local wildlife ingestion. Located near riparian buffer.',
-    };
+  detectWaste: async (imageFile: File): Promise<AIDetectionResult | null> => {
+    console.log('AI Service: OpenAI Vision API integration placeholder for', imageFile.name);
+    // Real integration will call OpenAI Vision API here and parse recommendations
+    return null;
   }
 };

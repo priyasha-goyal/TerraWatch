@@ -11,84 +11,30 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { REPORT_STATUS } from '../../constants/status';
+import { reportsServiceShell } from '../../services/reports';
 
 export const ImpactDashboardPage: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
   useEffect(() => {
-    // Generate initial reports if not in local storage
-    const stored = localStorage.getItem('tw_reports');
-    const mockReports: Report[] = [
-      {
-        id: 'rep-101',
-        reporterId: 'usr-google-101',
-        title: 'Large pile of plastic bottles near riparian buffer',
-        description: 'Over 50 discarded plastic soft drink bottles and packaging materials floating on the shoreline, threatening waterfowl nesting grounds.',
-        wasteType: 'PLASTIC',
-        severity: 'MEDIUM',
-        latitude: 43.64532,
-        longitude: -79.37812,
-        address: 'High Park South Boardwalk, Toronto, ON',
-        imageUrl: 'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=600&auto=format&fit=crop&q=80',
-        status: 'INVESTIGATING',
-        aiConfidence: 0.94,
-        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: 'rep-102',
-        reporterId: 'usr-google-101',
-        title: 'Toxic battery fluid drums disposed illegally',
-        description: 'Two large steel drums containing industrial battery casings and chemical leakage dumped off the trail. Strong solvent odors.',
-        wasteType: 'CHEMICAL',
-        severity: 'CRITICAL',
-        latitude: 43.66782,
-        longitude: -79.41245,
-        address: 'Ravine Trail Entrance, Cedarvale Park, Toronto, ON',
-        imageUrl: 'https://images.unsplash.com/photo-1605600656308-972a4e843af0?w=600&auto=format&fit=crop&q=80',
-        status: 'CLEANUP_SCHEDULED',
-        aiConfidence: 0.88,
-        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        updatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: 'rep-103',
-        reporterId: 'usr-google-202',
-        title: 'Discarded tires and construction concrete dumpsite',
-        description: 'Over 20 rubber tires and masonry scrap blocks left under canopy clearing. Prompts soil erosion and blocks turtle nesting trails.',
-        wasteType: 'CONSTRUCTION',
-        severity: 'HIGH',
-        latitude: 43.68231,
-        longitude: -79.33256,
-        address: 'Don River Valley Woodland, Toronto, ON',
-        status: 'RESOLVED',
-        aiConfidence: 0.81,
-        createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
-        updatedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    let isMounted = true;
+    reportsServiceShell.getReports().then((data) => {
+      if (isMounted) {
+        setReports(data);
+        if (data.length > 0) {
+          setSelectedReport(data[0]);
+        }
       }
-    ];
-
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as Report[];
-        // Merge stored with mock values to ensure we always have coordinate indicators on the map
-        const merged = [...parsed, ...mockReports.filter(mr => !parsed.some(pr => pr.id === mr.id))];
-        setReports(merged);
-        if (merged.length > 0) setSelectedReport(merged[0]);
-      } catch (e) {
-        setReports(mockReports);
-        setSelectedReport(mockReports[0]);
-      }
-    } else {
-      setReports(mockReports);
-      setSelectedReport(mockReports[0]);
-    }
+    });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const totalWasteDiverted = reports
     .filter(r => r.status === REPORT_STATUS.RESOLVED)
-    .reduce((sum, r) => sum + (r.severity === 'CRITICAL' ? 500 : r.severity === 'HIGH' ? 250 : 100), 2450);
+    .reduce((sum, r) => sum + (r.severity === 'CRITICAL' ? 500 : r.severity === 'HIGH' ? 250 : 100), 450);
 
   return (
     <div className="space-y-8">

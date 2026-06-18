@@ -4,12 +4,11 @@ import { useAuth } from '../../contexts/AuthContext';
 import { ROUTES } from '../../constants/routes';
 import { PageHeader } from '../../components/common/PageHeader';
 import { ReportForm } from '../../components/reports/ReportForm';
-import type { Report } from '../../types';
-import { REPORT_STATUS } from '../../constants/status';
+import { reportsServiceShell } from '../../services/reports';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 
 export const ReportWastePage: React.FC = () => {
-  const { user, updateEcoCoins } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -26,54 +25,20 @@ export const ReportWastePage: React.FC = () => {
     if (!user) return;
     setIsSubmitting(true);
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    const generatedId = `rep-${Math.random().toString(36).substr(2, 9)}`;
-    const newReport: Report = {
-      ...formData,
-      id: generatedId,
-      reporterId: user.id,
-      reporterName: user.name,
-      status: REPORT_STATUS.PENDING,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    // Save to local storage list
-    const existing = localStorage.getItem('tw_reports');
-    let reportList: Report[] = [];
-    if (existing) {
-      try {
-        reportList = JSON.parse(existing);
-      } catch (e) {
-        reportList = [];
-      }
-    }
-    reportList.unshift(newReport);
-    localStorage.setItem('tw_reports', JSON.stringify(reportList));
-
-    // Award initial report submit coins
-    updateEcoCoins(50);
-
-    // Save initial transaction to activities log
-    const existingActivities = localStorage.getItem('tw_activities') || '[]';
-    let activityList = [];
     try {
-      activityList = JSON.parse(existingActivities);
-    } catch(e) {}
-    activityList.unshift({
-      id: `act-${Math.random().toString(36).substr(2, 9)}`,
-      type: 'REPORT',
-      title: 'Report Logged',
-      subtitle: `${newReport.title} (#${newReport.id})`,
-      timestamp: new Date().toISOString(),
-    });
-    localStorage.setItem('tw_activities', JSON.stringify(activityList));
+      const newReport = await reportsServiceShell.createReport({
+        ...formData,
+        reporterId: user.id,
+        reporterName: user.name,
+      });
 
-    setNewReportId(generatedId);
-    setIsSubmitting(false);
-    setIsSuccess(true);
+      setNewReportId(newReport.id);
+      setIsSuccess(true);
+    } catch (e) {
+      console.error('Failed to submit report:', e);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!user) return null;
@@ -100,7 +65,7 @@ export const ReportWastePage: React.FC = () => {
           <div className="space-y-2">
             <h2 className="text-2xl font-black font-heading text-white">Incident Successfully Logged!</h2>
             <p className="text-xs text-slate-400 leading-relaxed max-w-md mx-auto">
-              Your report <strong>#{newReportId}</strong> has been logged to the TerraWatch municipal coordination pool. You have been rewarded with 50 EcoCoins!
+              Your report <strong>#{newReportId}</strong> has been logged to the TerraWatch municipal coordination pool.
             </p>
           </div>
 

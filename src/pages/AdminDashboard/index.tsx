@@ -8,6 +8,7 @@ import { AdminTable } from '../../components/admin/AdminTable';
 import type { Report } from '../../types';
 import { REPORT_STATUS, type ReportStatus, WASTE_TYPE_DETAILS } from '../../constants/status';
 import { Layers } from 'lucide-react';
+import { reportsServiceShell } from '../../services/reports';
 
 export const AdminDashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -27,101 +28,40 @@ export const AdminDashboardPage: React.FC = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    // Generate initial reports if not in local storage
-    const stored = localStorage.getItem('tw_reports');
-    const mockReports: Report[] = [
-      {
-        id: 'rep-101',
-        reporterId: 'usr-google-101',
-        reporterName: 'Eco Volunteer',
-        title: 'Large pile of plastic bottles near riparian buffer',
-        description: 'Over 50 discarded plastic soft drink bottles and packaging materials floating on the shoreline, threatening waterfowl nesting grounds.',
-        wasteType: 'PLASTIC',
-        severity: 'MEDIUM',
-        latitude: 43.64532,
-        longitude: -79.37812,
-        address: 'High Park South Boardwalk, Toronto, ON',
-        imageUrl: 'https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=600&auto=format&fit=crop&q=80',
-        status: 'PENDING',
-        aiConfidence: 0.94,
-        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: 'rep-102',
-        reporterId: 'usr-google-101',
-        reporterName: 'Eco Volunteer',
-        title: 'Toxic battery fluid drums disposed illegally',
-        description: 'Two large steel drums containing industrial battery casings and chemical leakage dumped off the trail. Strong solvent odors.',
-        wasteType: 'CHEMICAL',
-        severity: 'CRITICAL',
-        latitude: 43.66782,
-        longitude: -79.41245,
-        address: 'Ravine Trail Entrance, Cedarvale Park, Toronto, ON',
-        imageUrl: 'https://images.unsplash.com/photo-1605600656308-972a4e843af0?w=600&auto=format&fit=crop&q=80',
-        status: 'INVESTIGATING',
-        aiConfidence: 0.88,
-        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        updatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: 'rep-103',
-        reporterId: 'usr-google-202',
-        reporterName: 'Sanitation Watcher',
-        title: 'Discarded tires and construction concrete dumpsite',
-        description: 'Over 20 rubber tires and masonry scrap blocks left under canopy clearing. Prompts soil erosion and blocks turtle nesting trails.',
-        wasteType: 'CONSTRUCTION',
-        severity: 'HIGH',
-        latitude: 43.68231,
-        longitude: -79.33256,
-        address: 'Don River Valley Woodland, Toronto, ON',
-        status: 'RESOLVED',
-        aiConfidence: 0.81,
-        createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
-        updatedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    let isMounted = true;
+    reportsServiceShell.getReports().then((data) => {
+      if (isMounted) {
+        setReports(data);
+        if (data.length > 0) {
+          setSelectedReport(data[0]);
+        }
       }
-    ];
-
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as Report[];
-        const merged = [...parsed, ...mockReports.filter(mr => !parsed.some(pr => pr.id === mr.id))];
-        setReports(merged);
-        if (merged.length > 0) setSelectedReport(merged[0]);
-      } catch (e) {
-        setReports(mockReports);
-        setSelectedReport(mockReports[0]);
-      }
-    } else {
-      setReports(mockReports);
-      setSelectedReport(mockReports[0]);
-      localStorage.setItem('tw_reports', JSON.stringify(mockReports));
-    }
+    });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const handleUpdateStatus = (reportId: string, nextStatus: ReportStatus) => {
-    const updated = reports.map((rep) => {
-      if (rep.id === reportId) {
-        const item = { ...rep, status: nextStatus, updatedAt: new Date().toISOString() };
-        if (selectedReport?.id === reportId) setSelectedReport(item);
-        return item;
+  const handleUpdateStatus = async (reportId: string, nextStatus: ReportStatus) => {
+    try {
+      const success = await reportsServiceShell.updateReportStatus(reportId, nextStatus);
+      if (success) {
+        setReports((prev) =>
+          prev.map((rep) => {
+            if (rep.id === reportId) {
+              const updated = { ...rep, status: nextStatus, updatedAt: new Date().toISOString() };
+              if (selectedReport?.id === reportId) {
+                setSelectedReport(updated);
+              }
+              return updated;
+            }
+            return rep;
+          })
+        );
       }
-      return rep;
-    });
-    setReports(updated);
-    localStorage.setItem('tw_reports', JSON.stringify(updated));
-
-    // Log this status change activity
-    const activityList = JSON.parse(localStorage.getItem('tw_activities') || '[]');
-    const statusLabel = nextStatus.toLowerCase().replace('_', ' ');
-    activityList.unshift({
-      id: `act-${Math.random().toString(36).substr(2, 9)}`,
-      type: nextStatus === REPORT_STATUS.RESOLVED ? 'CLEANUP' : 'REPORT',
-      title: `Status Set: ${statusLabel}`,
-      subtitle: `Incident #${reportId} updated by municipal officer`,
-      timestamp: new Date().toISOString(),
-    });
-    localStorage.setItem('tw_activities', JSON.stringify(activityList));
+    } catch (e) {
+      console.error('Failed to update report status:', e);
+    }
   };
 
   if (!user) return null;
