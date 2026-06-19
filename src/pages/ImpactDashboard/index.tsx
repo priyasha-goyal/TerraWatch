@@ -84,7 +84,7 @@ export const ImpactDashboardPage: React.FC = () => {
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center gap-2 border-b border-forest-900/10 pb-3">
             <Map className="h-5 w-5 text-emerald-400" />
-            <h3 className="text-lg font-bold text-white font-heading">Interactive Remediation Grid</h3>
+            <h3 className="text-lg font-bold text-green-900 font-heading">Interactive Remediation Grid</h3>
           </div>
           
           <MapPlaceholder 
@@ -99,7 +99,7 @@ export const ImpactDashboardPage: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center gap-2 border-b border-forest-900/10 pb-3">
             <Activity className="h-5 w-5 text-emerald-400" />
-            <h3 className="text-lg font-bold text-white font-heading">Focused Node Triage</h3>
+            <h3 className="text-lg font-bold text-green-900 font-heading">Focused Node Triage</h3>
           </div>
 
           {selectedReport ? (
@@ -129,7 +129,7 @@ export const ImpactDashboardPage: React.FC = () => {
               <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 flex gap-2 text-xs">
                 <AlertCircle className="h-4.5 w-4.5 text-amber-500 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-slate-200">Ecotonal Threat Overlay</p>
+                  <p className="font-semibold text-slate-600">Ecotonal Threat Overlay</p>
                   <p className="text-[10px] text-slate-400 mt-0.5">
                     Surrounding watershed buffers support vulnerable spawning cycles. Remediation recommended within 48 hours.
                   </p>
@@ -145,45 +145,89 @@ export const ImpactDashboardPage: React.FC = () => {
       </div>
 
       {/* Protected Species Nearby Table */}
-      <div className="space-y-4 pt-4">
-        <div className="flex items-center gap-2 border-b border-forest-900/10 pb-3">
-          <TreePine className="h-5 w-5 text-emerald-400" />
-          <h3 className="text-lg font-bold text-white font-heading">Protected Local Faunal Inventory</h3>
-        </div>
+      {/* Protected Species Nearby Table */}
+<div className="space-y-6 pt-6">
+  <div className="flex items-center gap-3 border-b border-green-200 pb-4">
+    <TreePine className="h-6 w-6 text-green-700" />
+    <h3 className="text-2xl font-bold text-green-900">
+      Protected Local Faunal Inventory
+    </h3>
+  </div>
 
-        <div className="w-full overflow-x-auto rounded-xl border border-forest-900/40 bg-slate-900/20">
-          <table className="w-full border-collapse text-left text-xs">
-            <thead className="bg-slate-900 border-b border-forest-900/30 text-slate-400 font-bold uppercase tracking-wider">
-              <tr>
-                <th className="py-3.5 px-6">Common Name</th>
-                <th className="py-3.5 px-6">Scientific Taxonomy</th>
-                <th className="py-3.5 px-6 text-center">Conservation Status</th>
-                <th className="py-3.5 px-6 text-center">Population Trend</th>
-                <th className="py-3.5 px-6 text-center">Protected Population count</th>
-                <th className="py-3.5 px-6 text-right">Ecosystem Sanctuary Zone</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/30 text-slate-300">
-              {MOCK_SPECIES_LIST.map((sp) => (
-                <tr key={sp.id} className="hover:bg-slate-900/30 transition-colors">
-                  <td className="py-3.5 px-6 font-bold text-white">{sp.name}</td>
-                  <td className="py-3.5 px-6 italic text-slate-400">{sp.scientificName}</td>
-                  <td className="py-3.5 px-6 text-center">
-                    <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-slate-950 ${
-                      sp.status.includes('Endangered') ? 'text-rose-400' : 'text-amber-400'
-                    }`}>
-                      {sp.status}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-6 text-center font-semibold text-emerald-400">{sp.trend}</td>
-                  <td className="py-3.5 px-6 text-center font-mono text-slate-400">{sp.count} individuals</td>
-                  <td className="py-3.5 px-6 text-right text-slate-400 font-semibold">{sp.region}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+  <div className="overflow-hidden rounded-3xl bg-white shadow-lg border border-green-100">
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="bg-green-700 text-white">
+          <th className="px-6 py-4 text-left">Species</th>
+          <th className="px-6 py-4 text-left">Scientific Name</th>
+          <th className="px-6 py-4 text-center">Status</th>
+          <th className="px-6 py-4 text-center">Trend</th>
+          <th className="px-6 py-4 text-center">Population</th>
+          <th className="px-6 py-4 text-right">Sanctuary</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {MOCK_SPECIES_LIST.map((sp, index) => (
+          <tr
+            key={sp.id}
+            className={`transition hover:bg-green-50 ${
+              index % 2 === 0 ? "bg-white" : "bg-emerald-50/30"
+            }`}
+          >
+            <td className="px-6 py-5">
+              <div className="font-semibold text-green-900">
+                {sp.name}
+              </div>
+            </td>
+
+            <td className="px-6 py-5 italic text-green-700">
+              {sp.scientificName}
+            </td>
+
+            <td className="px-6 py-5 text-center">
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  sp.status.includes("Critically")
+                    ? "bg-red-100 text-red-700"
+                    : sp.status.includes("Endangered")
+                    ? "bg-orange-100 text-orange-700"
+                    : sp.status.includes("Threatened")
+                    ? "bg-yellow-100 text-yellow-800"
+                    : "bg-green-100 text-green-700"
+                }`}
+              >
+                {sp.status}
+              </span>
+            </td>
+
+            <td className="px-6 py-5 text-center font-semibold">
+              <span
+                className={
+                  sp.trend === "Increasing"
+                    ? "text-green-600"
+                    : sp.trend === "Recovering"
+                    ? "text-emerald-600"
+                    : "text-amber-600"
+                }
+              >
+                {sp.trend}
+              </span>
+            </td>
+
+            <td className="px-6 py-5 text-center font-medium text-slate-700">
+              {sp.count}
+            </td>
+
+            <td className="px-6 py-5 text-right text-green-800 font-medium">
+              {sp.region}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
 
     </div>
   );

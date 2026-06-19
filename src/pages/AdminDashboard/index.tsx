@@ -116,7 +116,7 @@ export const AdminDashboardPage: React.FC = () => {
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center gap-2 border-b border-forest-900/10 pb-3">
             <Layers className="h-5 w-5 text-emerald-400" />
-            <h3 className="text-lg font-bold text-white font-heading">Moderation Registry</h3>
+            <h3 className="text-lg font-bold text-green-900 font-heading">Moderation Registry</h3>
           </div>
 
           <AdminTable
@@ -130,7 +130,7 @@ export const AdminDashboardPage: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center gap-2 border-b border-forest-900/10 pb-3">
             <Layers className="h-5 w-5 text-emerald-400" />
-            <h3 className="text-lg font-bold text-white font-heading">Incident Detail Review</h3>
+            <h3 className="text-lg font-bold text-green-900 font-heading">Incident Detail Review</h3>
           </div>
 
           {selectedReport ? (
@@ -175,7 +175,7 @@ export const AdminDashboardPage: React.FC = () => {
               <div className="text-xs text-slate-350 leading-relaxed border-t border-slate-900/50 pt-3 space-y-2">
                 <p>{selectedReport.description}</p>
                 
-                <div className="text-[10px] text-slate-500 leading-normal bg-slate-950/60 p-2.5 rounded border border-slate-900 space-y-0.5">
+                <div className="text-[10px] text-green-800 leading-normal bg-green-50 p-2.5 rounded-xl border border-green-200 space-y-0.5">
                   <p><strong>Geotag address:</strong> {selectedReport.address}</p>
                   <p><strong>GPS coordinates:</strong> {selectedReport.latitude}, {selectedReport.longitude}</p>
                 </div>

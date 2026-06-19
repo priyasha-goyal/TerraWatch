@@ -122,7 +122,7 @@ export const DashboardPage: React.FC = () => {
         {/* Left 2 Columns: User Reports */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between border-b border-forest-900/10 pb-3">
-            <h3 className="text-lg font-bold text-white font-heading flex items-center gap-2">
+            <h3 className="text-lg font-bold text-green-900 font-heading flex items-center gap-2">
               <Layers className="h-5 w-5 text-emerald-400" />
               My Active Reports
             </h3>
