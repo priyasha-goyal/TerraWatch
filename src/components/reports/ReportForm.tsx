@@ -4,8 +4,12 @@ import type { Report } from '../../types';
 import { Camera, MapPin, Loader2 } from 'lucide-react';
 
 interface ReportFormProps {
-  onSubmit: (report: Omit<Report, 'id' | 'reporterId' | 'createdAt' | 'updatedAt' | 'status'> & { aiConfidence?: number }) => void;
-  isSubmitting?: boolean;
+  onSubmit: (report: Omit<Report, 'id' | 'reporterId' | 'createdAt' | 'updatedAt' | 'status'> & { 
+    aiConfidence?: number;
+    imageFile?: File | null; 
+  }
+ ) => void;
+ isSubmitting?: boolean;
 }
 
 export const ReportForm: React.FC<ReportFormProps> = ({ onSubmit, isSubmitting = false }) => {
@@ -17,10 +21,13 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSubmit, isSubmitting =
   const [latitude, setLatitude] = useState<string>('43.65322');
   const [longitude, setLongitude] = useState<string>('-79.38318');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    setImageFile(file);
 
     // Show local image preview
     const objectUrl = URL.createObjectURL(file);
@@ -60,6 +67,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSubmit, isSubmitting =
       latitude: parseFloat(latitude) || 43.65322,
       longitude: parseFloat(longitude) || -79.38318,
       imageUrl: imageUrl || undefined,
+      imageFile,
     });
   };
 
@@ -67,11 +75,11 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSubmit, isSubmitting =
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* 2-Column Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         {/* Left Column - Image & AI Placeholder */}
         <div className="space-y-4">
           <label className="block text-sm font-semibold text-slate-300">Incident Photograph Upload</label>
-          
+
           <div className="relative h-60 w-full rounded-xl border border-dashed border-forest-800 bg-slate-900/50 flex flex-col items-center justify-center overflow-hidden transition-all hover:border-emerald-500/40">
             {imageUrl ? (
               <>

@@ -59,8 +59,30 @@ const SAMPLE_CLEANUP_LOGS: CleanupLog[] = [
   }
 ];
 
+const uploadReportImage = async (file: File): Promise<string> => {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random()
+    .toString(36)
+    .substring(2)}.${fileExt}`;
+
+  const { error } = await supabase.storage
+    .from('report-images')
+    .upload(fileName, file);
+
+  if (error) {
+    throw error;
+  }
+
+  const { data } = supabase.storage
+    .from('report-images')
+    .getPublicUrl(fileName);
+
+  return data.publicUrl;
+};
+
 export const reportsServiceShell = {
   getReports: async (): Promise<Report[]> => {
+    
   const { data, error } = await supabase
     .from('reports')
     .select('*')
@@ -89,8 +111,15 @@ export const reportsServiceShell = {
 },
   
   createReport: async (
-  reportData: Omit<Report, 'id' | 'createdAt' | 'updatedAt' | 'status'>
+  reportData: Omit<Report, 'id' | 'createdAt' | 'updatedAt' | 'status'> & {
+    imageFile?: File | null;
+  }
 ): Promise<Report> => {
+  let imageUrl: string | null = null;
+
+if (reportData.imageFile) {
+  imageUrl = await uploadReportImage(reportData.imageFile);
+}
 
   const { data, error } = await supabase
     .from('reports')
@@ -98,7 +127,7 @@ export const reportsServiceShell = {
       user_id: null,
       title: reportData.title,
       description: reportData.description,
-      image_url: reportData.imageUrl || null,
+      image_url: imageUrl,
       latitude: reportData.latitude,
       longitude: reportData.longitude,
       waste_type: reportData.wasteType,
