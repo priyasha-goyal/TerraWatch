@@ -11,12 +11,7 @@
   }
   
   body {
-    @apply bg-slate-950 text-slate-100 antialiased font-sans selection:bg-mint-500/30 selection:text-mint-200 overflow-x-hidden;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(20, 83, 45, 0.15) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(6, 78, 59, 0.15) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(2, 44, 34, 0.25) 0px, transparent 50%);
-    background-attachment: fixed;
+    @apply bg-[#FAFAF8] text-[#1F2937] antialiased font-sans selection:bg-emerald-100 selection:text-[#2E7D32] overflow-x-hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -32,20 +27,20 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-slate-950;
+  @apply bg-[#FAFAF8];
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-forest-800 rounded-full hover:bg-forest-700 transition-colors;
+  @apply bg-[#CCDCD1] rounded-full hover:bg-[#a3c0ae] transition-colors;
 }
 
-/* Glassmorphism utility */
+/* Clean Panel Utility */
 .glass-panel {
-  @apply bg-slate-900/60 backdrop-blur-md border border-forest-900/50 shadow-xl;
+  @apply bg-white border border-[#E5EDE8] shadow-sm;
 }
 
 .glass-panel-hover {
-  @apply hover:bg-slate-900/80 hover:border-forest-700/50 hover:shadow-mint-950/20 transition-all duration-300;
+  @apply hover:border-[#CCDCD1] hover:shadow-md transition-all duration-300;
 }
 
 /* Pulsing animated dot for maps */

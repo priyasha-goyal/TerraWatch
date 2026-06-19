@@ -23,20 +23,20 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="flex min-h-[70vh] items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 glass-panel rounded-2xl p-8 border-forest-900/40 shadow-2xl relative overflow-hidden bg-slate-950/60 backdrop-blur-xl">
+      <div className="w-full max-w-md space-y-8 glass-panel rounded-2xl p-8 border-[#E5EDE8] bg-white shadow-md relative overflow-hidden">
         
         {/* Abstract Background Light */}
-        <div className="absolute -top-20 -left-20 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-20 -left-20 w-40 h-40 bg-[#E8F5E9]/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-[#E0F2F1]/30 rounded-full blur-3xl pointer-events-none" />
 
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center space-y-3 relative">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-forest-600 shadow-lg shadow-emerald-500/20">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#2E7D32] to-[#4CAF50] shadow-sm">
             <ShieldAlert className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-black font-heading text-white tracking-tight">Access TerraWatch</h2>
-            <p className="text-xs text-slate-400 mt-1 max-w-xs">
+            <h2 className="text-2xl font-black font-heading text-[#1F2937] tracking-tight">Access TerraWatch</h2>
+            <p className="text-xs text-[#6B7280] mt-1 max-w-xs">
               Sign in to map incident reports, log cleanups, and track biodiversity indicators.
             </p>
           </div>
@@ -47,7 +47,7 @@ export const LoginPage: React.FC = () => {
           <button
             type="button"
             onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center gap-3 rounded-xl bg-white hover:bg-slate-100 text-slate-900 px-4 py-3.5 text-sm font-bold transition-all shadow-md active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-3 rounded-xl bg-[#FAFAF8] hover:bg-[#E5EDE8] border border-[#CCDCD1] text-[#374151] px-4 py-3.5 text-sm font-semibold transition-all shadow-sm active:scale-[0.98]"
           >
             {/* Embedded SVG Google Icon */}
             <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none">
