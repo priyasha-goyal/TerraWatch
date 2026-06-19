@@ -34,8 +34,10 @@ export const ReportWastePage: React.FC = () => {
 
       setNewReportId(newReport.id);
       setIsSuccess(true);
-    } catch (e) {
-      console.error('Failed to submit report:', e);
+    } catch (e: any) {
+      console.error('FULL ERROR');
+      console.error(e);
+      console.error(JSON.stringify(e, null, 2));
     } finally {
       setIsSubmitting(false);
     }

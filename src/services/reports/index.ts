@@ -1,3 +1,4 @@
+import { supabase } from '../supabase/client';
 import type { Report, CleanupLog } from '../../types';
 import type { ReportStatus } from '../../constants/status';
 
@@ -60,20 +61,75 @@ const SAMPLE_CLEANUP_LOGS: CleanupLog[] = [
 
 export const reportsServiceShell = {
   getReports: async (): Promise<Report[]> => {
-    console.log('Reports Service: Fetching incident reports placeholder...');
-    return SAMPLE_REPORTS;
-  },
+  const { data, error } = await supabase
+    .from('reports')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  return (data || []).map((report) => ({
+    id: report.id,
+    reporterId: report.user_id,
+    title: report.title,
+    description: report.description,
+    wasteType: report.waste_type,
+    severity: report.severity,
+    latitude: report.latitude,
+    longitude: report.longitude,
+    address: '',
+    imageUrl: report.image_url,
+    status: report.status,
+    createdAt: report.created_at,
+    updatedAt: report.updated_at,
+  }));
+},
   
-  createReport: async (reportData: Omit<Report, 'id' | 'createdAt' | 'updatedAt' | 'status'>): Promise<Report> => {
-    console.log('Reports Service: Submitting new report placeholder...', reportData);
-    return {
-      ...reportData,
-      id: `rep-${Math.random().toString(36).substring(2, 11)}`,
-      status: 'PENDING',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-  },
+  createReport: async (
+  reportData: Omit<Report, 'id' | 'createdAt' | 'updatedAt' | 'status'>
+): Promise<Report> => {
+
+  const { data, error } = await supabase
+    .from('reports')
+    .insert({
+      user_id: null,
+      title: reportData.title,
+      description: reportData.description,
+      image_url: reportData.imageUrl || null,
+      latitude: reportData.latitude,
+      longitude: reportData.longitude,
+      waste_type: reportData.wasteType,
+      severity: reportData.severity,
+      ai_summary: null,
+      status: 'PENDING'
+    })
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return {
+    id: data.id,
+    reporterId: data.user_id,
+    reporterName: reportData.reporterName,
+    title: data.title,
+    description: data.description,
+    wasteType: data.waste_type,
+    severity: data.severity,
+    latitude: data.latitude,
+    longitude: data.longitude,
+    address: '',
+    imageUrl: data.image_url,
+    status: data.status,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
+},
   
   updateReportStatus: async (reportId: string, status: ReportStatus): Promise<boolean> => {
     console.log(`Reports Service: Updating report ${reportId} status to ${status} placeholder`);
