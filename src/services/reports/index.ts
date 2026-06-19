@@ -160,10 +160,26 @@ if (reportData.imageFile) {
   };
 },
   
-  updateReportStatus: async (reportId: string, status: ReportStatus): Promise<boolean> => {
-    console.log(`Reports Service: Updating report ${reportId} status to ${status} placeholder`);
-    return true;
-  },
+  updateReportStatus: async (
+  reportId: string,
+  status: ReportStatus
+): Promise<boolean> => {
+
+  const { error } = await supabase
+    .from('reports')
+    .update({
+      status,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', reportId);
+
+  if (error) {
+    console.error(error);
+    return false;
+  }
+
+  return true;
+},
   
   getCleanupLogs: async (): Promise<CleanupLog[]> => {
     console.log('Reports Service: Fetching cleanup activity logs placeholder...');
