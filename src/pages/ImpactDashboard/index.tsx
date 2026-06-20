@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PageHeader } from '../../components/common/PageHeader';
 import { StatsCard } from '../../components/dashboard/StatsCard';
-import { MapPlaceholder } from '../../components/map/MapPlaceholder';
+import { LeafletMap } from '../../components/map/LeafletMap';
 import { MOCK_SPECIES_LIST } from '../../constants/biodiversity';
 import type { Report } from '../../types';
 import { 
@@ -32,9 +32,9 @@ export const ImpactDashboardPage: React.FC = () => {
     };
   }, []);
 
-  const totalWasteDiverted = reports
-    .filter(r => r.status === REPORT_STATUS.RESOLVED)
-    .reduce((sum, r) => sum + (r.severity === 'CRITICAL' ? 500 : r.severity === 'HIGH' ? 250 : 100), 450);
+  // const totalWasteDiverted = reports
+  //   .filter(r => r.status === REPORT_STATUS.RESOLVED)
+  //   .reduce((sum, r) => sum + (r.severity === 'CRITICAL' ? 500 : r.severity === 'HIGH' ? 250 : 100), 450);
   const totalReports = reports.length;
   
   const pendingReports = reports.filter(
@@ -45,9 +45,9 @@ export const ImpactDashboardPage: React.FC = () => {
     r => r.status === REPORT_STATUS.RESOLVED
   ).length;
   
-  const criticalReports = reports.filter(
-    r => r.severity === 'CRITICAL'
-  ).length;
+  // const criticalReports = reports.filter(
+  //   r => r.severity === 'CRITICAL'
+  // ).length;
   const resolutionRate = 
   totalReports > 0
     ? Math.round((resolvedReports / totalReports) * 100)
@@ -90,6 +90,20 @@ export const ImpactDashboardPage: React.FC = () => {
           description="Percentage of reports completed."
           colorClass="text-teal-600"
         />
+        {/* <StatsCard
+  title="Critical Reports"
+  value={criticalReports}
+  iconName="AlertTriangle"
+  description="High-priority environmental hazards."
+  colorClass="text-red-600"
+/>
+<StatsCard
+  title="Waste Diverted"
+  value={`${totalWasteDiverted} kg`}
+  iconName="Trash2"
+  description="Estimated waste removed from reported sites."
+  colorClass="text-green-600"
+/> */}
       </div>
 
       {/* Interactive Map Section */}
@@ -102,12 +116,9 @@ export const ImpactDashboardPage: React.FC = () => {
             <h3 className="text-lg font-bold text-green-900 font-heading">Interactive Remediation Grid</h3>
           </div>
           
-          <MapPlaceholder 
-            reports={reports} 
-            selectedReportId={selectedReport?.id}
-            onSelectReport={(r) => setSelectedReport(r)}
-            heightClass="h-[450px]"
-          />
+          <LeafletMap
+          reports={reports}
+          onSelectReport={(r) => setSelectedReport(r)} />
         </div>
 
         {/* Selected Incident Sidebar Detail Panel */}
