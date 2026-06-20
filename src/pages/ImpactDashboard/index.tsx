@@ -35,6 +35,23 @@ export const ImpactDashboardPage: React.FC = () => {
   const totalWasteDiverted = reports
     .filter(r => r.status === REPORT_STATUS.RESOLVED)
     .reduce((sum, r) => sum + (r.severity === 'CRITICAL' ? 500 : r.severity === 'HIGH' ? 250 : 100), 450);
+  const totalReports = reports.length;
+  
+  const pendingReports = reports.filter(
+    r => r.status === REPORT_STATUS.PENDING
+  ).length;
+  
+  const resolvedReports = reports.filter(
+    r => r.status === REPORT_STATUS.RESOLVED
+  ).length;
+  
+  const criticalReports = reports.filter(
+    r => r.severity === 'CRITICAL'
+  ).length;
+  const resolutionRate = 
+  totalReports > 0
+    ? Math.round((resolvedReports / totalReports) * 100)
+    : 0;
 
   return (
     <div className="space-y-8">
@@ -46,34 +63,32 @@ export const ImpactDashboardPage: React.FC = () => {
       {/* Main Impact Grid Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
-          title="Biodiversity Score"
-          value="78 / 100"
-          iconName="TreePine"
-          description="Ecosystem index calculated from species sightings & pollution clearance."
-          trend={{ value: '+2.4% this quarter', isPositive: true }}
-          colorClass="text-emerald-400"
+          title="Total Reports"
+          value={totalReports}
+          iconName="FileText"
+          description="Environmental incidents reported by citizens."
+          colorClass="text-green-600"
         />
         <StatsCard
-          title="Total Waste Diverted"
-          value={`${totalWasteDiverted} kg`}
-          iconName="Trash2"
-          description="Debris and chemical canisters cleared from woodlands."
-          trend={{ value: '+350 kg this month', isPositive: true }}
-          colorClass="text-teal-400"
+          title="Pending Reports"
+          value={pendingReports}
+          iconName="Clock"
+          description="Awaiting investigation."
+          colorClass="text-amber-600"
         />
         <StatsCard
-          title="Carbon Saved"
-          value="1,850 kg CO2"
-          iconName="Leaf"
-          description="Carbon offset calculated from soil restoration actions."
-          colorClass="text-mint-400"
+          title="Resolved Reports"
+          value={resolvedReports}
+          iconName="CheckCircle"
+          description="Incidents successfully remediated."
+          colorClass="text-green-600"
         />
         <StatsCard
-          title="Active Sanctuaries"
-          value="12 sites"
-          iconName="Award"
-          description="Ecosystem buffers fully cleared of industrial pollution."
-          colorClass="text-cyan-400"
+          title="Resolution Rate"
+          value={`${resolutionRate}%`}
+          iconName="TrendingUp"
+          description="Percentage of reports completed."
+          colorClass="text-teal-600"
         />
       </div>
 
