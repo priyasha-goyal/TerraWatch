@@ -10,6 +10,7 @@ import { DashboardPage } from '../pages/Dashboard';
 import { ReportWastePage } from '../pages/ReportWaste';
 import { ImpactDashboardPage } from '../pages/ImpactDashboard';
 import { AdminDashboardPage } from '../pages/AdminDashboard';
+import { MyReportsPage } from '../pages/MyReports';
 
 // Layout Imports
 import { MainLayout } from '../layouts/MainLayout';
@@ -107,6 +108,17 @@ export const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       />
+
+      <Route
+  path={ROUTES.MY_REPORTS}
+  element={
+    <ProtectedRoute>
+      <MainLayout>
+        <MyReportsPage />
+      </MainLayout>
+    </ProtectedRoute>
+  }
+/>
 
       {/* Authorized Municipal Operations Routes */}
       <Route

@@ -1,3 +1,4 @@
+import { supabase } from '../../services/supabase/client';
 import React, { useState, useEffect } from 'react';
 import { PageHeader } from '../../components/common/PageHeader';
 import { StatsCard } from '../../components/dashboard/StatsCard';
@@ -18,19 +19,38 @@ export const ImpactDashboardPage: React.FC = () => {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
-    reportsServiceShell.getReports().then((data) => {
-      if (isMounted) {
-        setReports(data);
-        if (data.length > 0) {
-          setSelectedReport(data[0]);
-        }
-      }
-    });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const loadReports = async () => {
+    const data = await reportsServiceShell.getReports();
+    setReports(data);
+
+    if (data.length > 0) {
+      setSelectedReport(data[0]);
+    }
+  };
+
+  loadReports();
+
+  const channel =
+    reportsServiceShell.subscribeToReports(loadReports);
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, []);
+  // useEffect(() => {
+  //   let isMounted = true;
+  //   reportsServiceShell.getReports().then((data) => {
+  //     if (isMounted) {
+  //       setReports(data);
+  //       if (data.length > 0) {
+  //         setSelectedReport(data[0]);
+  //       }
+  //     }
+  //   });
+  //   return () => {
+  //     isMounted = false;
+  //   };
+  // }, []);
 
   // const totalWasteDiverted = reports
   //   .filter(r => r.status === REPORT_STATUS.RESOLVED)

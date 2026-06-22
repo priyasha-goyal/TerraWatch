@@ -45,10 +45,46 @@ const uploadReportImage = async (file: File): Promise<string> => {
 
 export const reportsServiceShell = {
   getReports: async (): Promise<Report[]> => {
-    
+
   const { data, error } = await supabase
     .from('reports')
     .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  return (data || []).map((report) => ({
+    id: report.id,
+    reporterId: report.user_id,
+    title: report.title,
+    description: report.description,
+    wasteType: report.waste_type,
+    severity: report.severity,
+    latitude: report.latitude,
+    longitude: report.longitude,
+    address: '',
+    imageUrl: report.image_url,
+    status: report.status,
+    createdAt: report.created_at,
+    updatedAt: report.updated_at,
+  }));
+},
+
+getMyReports: async (): Promise<Report[]> => {
+
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from('reports')
+    .select('*')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -80,7 +116,7 @@ export const reportsServiceShell = {
 ): Promise<Report> => {
 
   console.log("CREATE REPORT STARTED");
-  
+
   const {
   data: { user }
 } = await supabase.auth.getUser();
@@ -163,5 +199,23 @@ if (reportData.imageFile) {
       ...logData,
       id: `cln-${Math.random().toString(36).substring(2, 11)}`,
     };
-  }
+    
+  },
+  subscribeToReports: (callback: () => void) => {
+  return supabase
+    .channel('reports-realtime')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'reports'
+      },
+      () => {
+        callback();
+      }
+    )
+    .subscribe();
+},
+  
 };

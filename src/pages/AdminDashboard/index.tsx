@@ -1,3 +1,4 @@
+import { supabase } from '../../services/supabase/client';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -28,19 +29,38 @@ export const AdminDashboardPage: React.FC = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    let isMounted = true;
-    reportsServiceShell.getReports().then((data) => {
-      if (isMounted) {
-        setReports(data);
-        if (data.length > 0) {
-          setSelectedReport(data[0]);
-        }
+    const loadReports = async () => {
+      const data = await reportsServiceShell.getReports();
+      setReports(data);
+  
+      if (data.length > 0) {
+        setSelectedReport(data[0]);
       }
-    });
+    };
+  
+    loadReports();
+  
+    const channel =
+      reportsServiceShell.subscribeToReports(loadReports);
+  
     return () => {
-      isMounted = false;
+      supabase.removeChannel(channel);
     };
   }, []);
+  // useEffect(() => {
+  //   let isMounted = true;
+  //   reportsServiceShell.getReports().then((data) => {
+  //     if (isMounted) {
+  //       setReports(data);
+  //       if (data.length > 0) {
+  //         setSelectedReport(data[0]);
+  //       }
+  //     }
+  //   });
+  //   return () => {
+  //     isMounted = false;
+  //   };
+  // }, []);
 
   const handleUpdateStatus = async (reportId: string, nextStatus: ReportStatus) => {
     try {

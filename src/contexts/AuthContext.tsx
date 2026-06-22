@@ -17,13 +17,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const createProfileIfNeeded = async (authUser: any) => {
+
+    const role =
+  authUser.email === 'priyashahgoyal@gmail.com'
+    ? 'ADMIN'
+    : 'USER';
+
   const { data: existingProfile } = await supabase
     .from('profiles')
     .select('id')
     .eq('id', authUser.id)
     .maybeSingle();
 
-  if (existingProfile) return;
+  // if (existingProfile) return;
+  if (existingProfile) {
+  await supabase
+    .from('profiles')
+    .update({ role })
+    .eq('id', authUser.id);
+
+  return;
+}
 
   const { error } = await supabase
     .from('profiles')
@@ -34,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         authUser.user_metadata?.name ||
         'TerraWatch User',
       email: authUser.email,
-      role: 'USER',
+      role,
       eco_coins: 0
     });
 
@@ -51,15 +65,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (session?.user) {
       await createProfileIfNeeded(session.user);
-      setUser({
-        id: session.user.id,
-        email: session.user.email || '',
-        name:
-          session.user.user_metadata?.full_name ||
-          session.user.user_metadata?.name ||
-          'TerraWatch User',
-        role: 'USER',
-        ecoCoinBalance: 0
+      const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', session.user.id)
+    .single();
+
+  setUser({
+    id: session.user.id,
+    email: session.user.email || '',
+    name: profile?.full_name || 'TerraWatch User',
+    role: profile?.role || 'USER',
+    ecoCoinBalance: profile?.eco_coins || 0
       });
     }
 
@@ -69,24 +86,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   loadUser();
 
   const {
-    data: { subscription }
-  } = supabase.auth.onAuthStateChange((_event, session) => {
-    if (session?.user) {
-      createProfileIfNeeded(session.user);
-      setUser({
-        id: session.user.id,
-        email: session.user.email || '',
-        name:
-          session.user.user_metadata?.full_name ||
-          session.user.user_metadata?.name ||
-          'TerraWatch User',
-        role: 'USER',
-        ecoCoinBalance: 0
-      });
-    } else {
-      setUser(null);
-    }
-  });
+  data: { subscription }
+} = supabase.auth.onAuthStateChange(async (_event, session) => {
+
+  if (session?.user) {
+
+    await createProfileIfNeeded(session.user);
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    setUser({
+      id: session.user.id,
+      email: session.user.email || '',
+      name: profile?.full_name || 'TerraWatch User',
+      role: profile?.role || 'USER',
+      ecoCoinBalance: profile?.eco_coins || 0
+    });
+
+  } else {
+    setUser(null);
+  }
+});
 
   return () => subscription.unsubscribe();
 }, []);
@@ -95,7 +119,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin
+      redirectTo: window.location.origin,
+      queryParams: {
+        prompt: 'select_account'
+      }
     }
   });
 };

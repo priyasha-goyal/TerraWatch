@@ -5,4 +5,5 @@ export const ROUTES = {
   REPORT_WASTE: '/report',
   IMPACT: '/impact',
   ADMIN: '/admin',
+  MY_REPORTS: '/my-reports',
 } as const;
