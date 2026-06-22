@@ -78,6 +78,14 @@ export const reportsServiceShell = {
     imageFile?: File | null;
   }
 ): Promise<Report> => {
+
+  console.log("CREATE REPORT STARTED");
+  
+  const {
+  data: { user }
+} = await supabase.auth.getUser();
+console.log("Supabase user:", user);
+
   let imageUrl: string | null = null;
 
 if (reportData.imageFile) {
@@ -87,7 +95,7 @@ if (reportData.imageFile) {
   const { data, error } = await supabase
     .from('reports')
     .insert({
-      user_id: null,
+      user_id: user?.id,
       title: reportData.title,
       description: reportData.description,
       image_url: imageUrl,
