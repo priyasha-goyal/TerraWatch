@@ -4,12 +4,12 @@ import type { Report } from '../../types';
 import { Camera, MapPin, Loader2 } from 'lucide-react';
 
 interface ReportFormProps {
-  onSubmit: (report: Omit<Report, 'id' | 'reporterId' | 'createdAt' | 'updatedAt' | 'status'> & { 
+  onSubmit: (report: Omit<Report, 'id' | 'reporterId' | 'createdAt' | 'updatedAt' | 'status'> & {
     aiConfidence?: number;
-    imageFile?: File | null; 
+    imageFile?: File | null;
   }
- ) => void;
- isSubmitting?: boolean;
+  ) => void;
+  isSubmitting?: boolean;
 }
 
 export const ReportForm: React.FC<ReportFormProps> = ({ onSubmit, isSubmitting = false }) => {
@@ -22,6 +22,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSubmit, isSubmitting =
   const [longitude, setLongitude] = useState<string>('-79.38318');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isAnonymous, setIsAnonymous] = useState(true);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -68,6 +69,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSubmit, isSubmitting =
       longitude: parseFloat(longitude) || -79.38318,
       imageUrl: imageUrl || undefined,
       imageFile,
+      isAnonymous,
     });
   };
 
@@ -206,6 +208,19 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSubmit, isSubmitting =
                 className="w-full rounded border border-[#CCDCD1] bg-white px-3 py-1.5 text-xs text-[#1F2937] placeholder-[#9CA3AF] focus:border-[#2E7D32] focus:outline-none transition-all"
               />
             </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={isAnonymous}
+              onChange={(e) => setIsAnonymous(e.target.checked)}
+              className="h-4 w-4"
+            />
+
+            <label className="text-sm text-[#374151]">
+              Report Anonymously
+            </label>
           </div>
 
           <div className="space-y-1.5">

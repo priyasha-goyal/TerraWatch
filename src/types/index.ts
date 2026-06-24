@@ -10,6 +10,11 @@ export interface User {
 }
 
 export interface Report {
+  isAnonymous?: boolean;
+
+upvotes?: number;
+
+falseReports?: number;
   id: string;
   reporterId: string;
   reporterName?: string;

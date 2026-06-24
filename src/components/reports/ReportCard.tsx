@@ -1,7 +1,10 @@
 import React from 'react';
 import type { Report } from '../../types';
 import { STATUS_DETAILS, WASTE_TYPE_DETAILS } from '../../constants/status';
-import { MapPin, Calendar, Brain, ArrowRight, ShieldAlert } from 'lucide-react';
+import {
+  MapPin, Calendar, Brain, ArrowRight, ShieldAlert, ThumbsUp,
+  ThumbsDown
+} from 'lucide-react';
 
 interface ReportCardProps {
   report: Report;
@@ -12,6 +15,9 @@ interface ReportCardProps {
 export const ReportCard: React.FC<ReportCardProps> = ({ report, onViewDetails, isSelected }) => {
   const statusInfo = STATUS_DETAILS[report.status];
   const typeInfo = WASTE_TYPE_DETAILS[report.wasteType];
+  const trustScore =
+    (report.upvotes || 0) -
+    (report.falseReports || 0);
 
   const getSeverityBadgeClass = (severity: Report['severity']) => {
     switch (severity) {
@@ -31,19 +37,18 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, onViewDetails, i
   };
 
   return (
-    <div 
-      className={`glass-panel rounded-xl overflow-hidden border transition-all duration-300 bg-white ${
-        isSelected 
-          ? 'ring-2 ring-[#2E7D32] border-[#2E7D32] shadow-md scale-[1.01]' 
-          : 'border-[#E5EDE8] hover:border-[#CCDCD1] hover:shadow-sm'
-      }`}
+    <div
+      className={`glass-panel rounded-xl overflow-hidden border transition-all duration-300 bg-white ${isSelected
+        ? 'ring-2 ring-[#2E7D32] border-[#2E7D32] shadow-md scale-[1.01]'
+        : 'border-[#E5EDE8] hover:border-[#CCDCD1] hover:shadow-sm'
+        }`}
     >
       {/* Visual Image Header */}
       <div className="relative h-44 w-full bg-slate-100 overflow-hidden">
         {report.imageUrl ? (
-          <img 
-            src={report.imageUrl} 
-            alt={report.title} 
+          <img
+            src={report.imageUrl}
+            alt={report.title}
             className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
           />
         ) : (
@@ -55,15 +60,13 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, onViewDetails, i
 
         {/* Top Badges */}
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-          <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm ${
-            getSeverityBadgeClass(report.severity)
-          }`}>
+          <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm ${getSeverityBadgeClass(report.severity)
+            }`}>
             {report.severity}
           </span>
-          
-          <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold backdrop-blur-sm ${
-            statusInfo.badgeClass
-          }`}>
+
+          <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold backdrop-blur-sm ${statusInfo.badgeClass
+            }`}>
             {statusInfo.label}
           </span>
         </div>
@@ -83,7 +86,17 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, onViewDetails, i
           <span className="text-[10px] font-bold uppercase tracking-widest text-[#2E7D32]">
             {typeInfo?.label || report.wasteType.replace('_', ' ')}
           </span>
-          <h4 className="text-base font-bold text-[#1F2937] leading-snug line-clamp-1">{report.title}</h4>
+          <div>
+            <h4 className="text-base font-bold text-[#1F2937] leading-snug line-clamp-1">
+              {report.title}
+            </h4>
+
+            <span className="text-[11px] text-[#6B7280]">
+              {report.isAnonymous
+                ? 'Reported by Anonymous Citizen'
+                : `Reported by ${report.reporterName}`}
+            </span>
+          </div>
         </div>
 
         <p className="text-xs text-[#6B7280] line-clamp-2 leading-relaxed">
@@ -102,6 +115,38 @@ export const ReportCard: React.FC<ReportCardProps> = ({ report, onViewDetails, i
           </div>
         </div>
 
+        <div className="border-t border-[#F5F7F5] pt-3">
+
+          <div className="flex items-center justify-between">
+
+            <div className="flex items-center gap-4">
+
+              <div className="flex items-center gap-1 text-green-600 text-sm font-semibold">
+                <ThumbsUp className="h-4 w-4" />
+                {report.upvotes || 0}
+              </div>
+
+              <div className="flex items-center gap-1 text-red-500 text-sm font-semibold">
+                <ThumbsDown className="h-4 w-4" />
+                {report.falseReports || 0}
+              </div>
+
+            </div>
+
+            <span
+              className={`text-xs font-bold px-2 py-1 rounded-full ${trustScore > 10
+                  ? 'bg-green-100 text-green-700'
+                  : trustScore > 0
+                    ? 'bg-yellow-100 text-yellow-700'
+                    : 'bg-red-100 text-red-700'
+                }`}
+            >
+              Trust Score: {trustScore}
+            </span>
+
+          </div>
+
+        </div>
         {/* Action Button */}
         {onViewDetails && (
           <button

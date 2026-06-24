@@ -46,176 +46,192 @@ const uploadReportImage = async (file: File): Promise<string> => {
 export const reportsServiceShell = {
   getReports: async (): Promise<Report[]> => {
 
-  const { data, error } = await supabase
-    .from('reports')
-    .select('*')
-    .order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from('reports')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error(error);
-    return [];
-  }
+    if (error) {
+      console.error(error);
+      return [];
+    }
 
-  return (data || []).map((report) => ({
-    id: report.id,
-    reporterId: report.user_id,
-    title: report.title,
-    description: report.description,
-    wasteType: report.waste_type,
-    severity: report.severity,
-    latitude: report.latitude,
-    longitude: report.longitude,
-    address: '',
-    imageUrl: report.image_url,
-    status: report.status,
-    createdAt: report.created_at,
-    updatedAt: report.updated_at,
-  }));
-},
+    return (data || []).map((report) => ({
+      id: report.id,
+      reporterId: report.user_id,
 
-getMyReports: async (): Promise<Report[]> => {
+      isAnonymous: report.is_anonymous,
+      upvotes: report.upvotes ?? 0,
+      falseReports: report.false_reports ?? 0,
 
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+      title: report.title,
+      description: report.description,
+      wasteType: report.waste_type,
+      severity: report.severity,
+      latitude: report.latitude,
+      longitude: report.longitude,
+      address: '',
+      imageUrl: report.image_url,
+      status: report.status,
+      createdAt: report.created_at,
+      updatedAt: report.updated_at,
+    }));
+  },
 
-  if (!user) return [];
+  getMyReports: async (): Promise<Report[]> => {
 
-  const { data, error } = await supabase
-    .from('reports')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
 
-  if (error) {
-    console.error(error);
-    return [];
-  }
+    if (!user) return [];
 
-  return (data || []).map((report) => ({
-    id: report.id,
-    reporterId: report.user_id,
-    title: report.title,
-    description: report.description,
-    wasteType: report.waste_type,
-    severity: report.severity,
-    latitude: report.latitude,
-    longitude: report.longitude,
-    address: '',
-    imageUrl: report.image_url,
-    status: report.status,
-    createdAt: report.created_at,
-    updatedAt: report.updated_at,
-  }));
-},
-  
+    const { data, error } = await supabase
+      .from('reports')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return [];
+    }
+
+    return (data || []).map((report) => ({
+      id: report.id,
+      reporterId: report.user_id,
+
+      isAnonymous: report.is_anonymous,
+      upvotes: report.upvotes ?? 0,
+      falseReports: report.false_reports ?? 0,
+
+      title: report.title,
+      description: report.description,
+      wasteType: report.waste_type,
+      severity: report.severity,
+      latitude: report.latitude,
+      longitude: report.longitude,
+      address: '',
+      imageUrl: report.image_url,
+      status: report.status,
+      createdAt: report.created_at,
+      updatedAt: report.updated_at,
+    }));
+  },
+
   createReport: async (
-  reportData: Omit<Report, 'id' | 'createdAt' | 'updatedAt' | 'status'> & {
-    imageFile?: File | null;
-  }
-): Promise<Report> => {
+    reportData: Omit<Report, 'id' | 'createdAt' | 'updatedAt' | 'status'> & {
+      imageFile?: File | null;
+    }
+  ): Promise<Report> => {
 
-  console.log("CREATE REPORT STARTED");
+    console.log("CREATE REPORT STARTED");
 
-  const {
-  data: { user }
-} = await supabase.auth.getUser();
-console.log("Supabase user:", user);
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
+    console.log("Supabase user:", user);
 
-  let imageUrl: string | null = null;
+    let imageUrl: string | null = null;
 
-if (reportData.imageFile) {
-  imageUrl = await uploadReportImage(reportData.imageFile);
-}
+    if (reportData.imageFile) {
+      imageUrl = await uploadReportImage(reportData.imageFile);
+    }
 
-  const { data, error } = await supabase
-    .from('reports')
-    .insert({
-      user_id: user?.id,
-      title: reportData.title,
-      description: reportData.description,
-      image_url: imageUrl,
-      latitude: reportData.latitude,
-      longitude: reportData.longitude,
-      waste_type: reportData.wasteType,
-      severity: reportData.severity,
-      ai_summary: null,
-      status: 'PENDING'
-    })
-    .select()
-    .single();
+    const { data, error } = await supabase
+      .from('reports')
+      .insert({
+        user_id: user?.id,
+        title: reportData.title,
+        description: reportData.description,
+        image_url: imageUrl,
+        latitude: reportData.latitude,
+        longitude: reportData.longitude,
+        waste_type: reportData.wasteType,
+        severity: reportData.severity,
+        is_anonymous: reportData.isAnonymous ?? true,
+        ai_summary: null,
+        status: 'PENDING'
+      })
+      .select()
+      .single();
 
-  if (error) {
-    throw error;
-  }
+    if (error) {
+      throw error;
+    }
 
-  return {
-    id: data.id,
-    reporterId: data.user_id,
-    reporterName: reportData.reporterName,
-    title: data.title,
-    description: data.description,
-    wasteType: data.waste_type,
-    severity: data.severity,
-    latitude: data.latitude,
-    longitude: data.longitude,
-    address: '',
-    imageUrl: data.image_url,
-    status: data.status,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
-  };
-},
-  
+    return {
+      id: data.id,
+      reporterId: data.user_id,
+
+      isAnonymous: data.is_anonymous,
+      upvotes: data.upvotes ?? 0,
+      falseReports: data.false_reports ?? 0,
+
+      reporterName: reportData.reporterName,
+      title: data.title,
+      description: data.description,
+      wasteType: data.waste_type,
+      severity: data.severity,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      address: '',
+      imageUrl: data.image_url,
+      status: data.status,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    };
+  },
+
   updateReportStatus: async (
-  reportId: string,
-  status: ReportStatus
-): Promise<boolean> => {
+    reportId: string,
+    status: ReportStatus
+  ): Promise<boolean> => {
 
-  const { error } = await supabase
-    .from('reports')
-    .update({
-      status,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', reportId);
+    const { error } = await supabase
+      .from('reports')
+      .update({
+        status,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', reportId);
 
-  if (error) {
-    console.error(error);
-    return false;
-  }
+    if (error) {
+      console.error(error);
+      return false;
+    }
 
-  return true;
-},
-  
+    return true;
+  },
+
   getCleanupLogs: async (): Promise<CleanupLog[]> => {
     console.log('Reports Service: Fetching cleanup activity logs placeholder...');
     return SAMPLE_CLEANUP_LOGS;
   },
-  
+
   createCleanupLog: async (logData: Omit<CleanupLog, 'id'>): Promise<CleanupLog> => {
     console.log('Reports Service: Logging cleanup session placeholder...', logData);
     return {
       ...logData,
       id: `cln-${Math.random().toString(36).substring(2, 11)}`,
     };
-    
+
   },
   subscribeToReports: (callback: () => void) => {
-  return supabase
-    .channel('reports-realtime')
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'reports'
-      },
-      () => {
-        callback();
-      }
-    )
-    .subscribe();
-},
-  
+    return supabase
+      .channel('reports-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reports'
+        },
+        () => {
+          callback();
+        }
+      )
+      .subscribe();
+  },
+
 };
