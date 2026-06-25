@@ -7,4 +7,5 @@ export const ROUTES = {
   ADMIN: '/admin',
   MY_REPORTS: '/my-reports',
   ECOCOIN_WALLET: '/wallet',
+  COMMUNITY_FEED: '/community',
 } as const;

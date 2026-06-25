@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { ROUTES } from '../../constants/routes';
-import { Menu, X, Coins, Shield, BarChart3, PlusCircle, LayoutDashboard, LogOut, ShieldAlert } from 'lucide-react';
+import { Menu, X, Coins, Shield, BarChart3, PlusCircle, LayoutDashboard, LogOut, ShieldAlert, Users } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -20,6 +20,7 @@ export const Navbar: React.FC = () => {
   const navLinks = [
     { label: 'Home', path: ROUTES.LANDING, icon: null },
     { label: 'Impact Tracker', path: ROUTES.IMPACT, icon: BarChart3 },
+    { label: 'Community', path: ROUTES.COMMUNITY_FEED, icon: Users },
   ];
 
   const loggedInLinks = [

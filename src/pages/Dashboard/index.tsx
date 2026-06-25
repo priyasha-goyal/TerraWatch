@@ -15,6 +15,9 @@ import { supabase } from '../../services/supabase/client';
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const [weeklyCoins, setWeeklyCoins] = useState(0);
+  const [totalValidations, setTotalValidations] = useState(0);
+  const [avgValidations, setAvgValidations] = useState(0);
+  const [mostValidatedTitle, setMostValidatedTitle] = useState('None');
   const navigate = useNavigate();
   const [reports, setReports] = useState<Report[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
@@ -47,6 +50,49 @@ export const DashboardPage: React.FC = () => {
 
         const weeklyEarned = txns?.reduce((sum, t) => sum + t.amount, 0) || 0;
         setWeeklyCoins(weeklyEarned);
+
+        // Fetch upvotes metrics
+        const { count: upvoteCount } = await supabase
+          .from('report_upvotes')
+          .select('*', { count: 'exact', head: true });
+
+        const totalVals = upvoteCount || 0;
+        setTotalValidations(totalVals);
+
+        const totalReps = fetchedReports.length;
+        const avgVals = totalReps > 0 ? totalVals / totalReps : 0;
+        setAvgValidations(avgVals);
+
+        // Group upvotes to find top validated report title
+        const { data: allUpvotes } = await supabase
+          .from('report_upvotes')
+          .select('report_id');
+
+        let topTitle = 'None';
+        if (allUpvotes && allUpvotes.length > 0 && fetchedReports.length > 0) {
+          const upvotesGrouped = new Map<string, number>();
+          allUpvotes.forEach((up) => {
+            upvotesGrouped.set(up.report_id, (upvotesGrouped.get(up.report_id) || 0) + 1);
+          });
+
+          let maxUpvotes = 0;
+          let topReportId = '';
+          upvotesGrouped.forEach((count, rid) => {
+            if (count > maxUpvotes) {
+              maxUpvotes = count;
+              topReportId = rid;
+            }
+          });
+
+          const topReport = fetchedReports.find((r) => r.id === topReportId);
+          if (topReport) {
+            topTitle = topReport.title;
+            if (topTitle.length > 20) {
+              topTitle = topTitle.substring(0, 17) + '...';
+            }
+          }
+        }
+        setMostValidatedTitle(topTitle);
 
         const reportActivities: ActivityItem[] = fetchedReports.map(r => ({
           id: `act-rep-${r.id}`,
@@ -124,6 +170,27 @@ export const DashboardPage: React.FC = () => {
           iconName="Award"
           description="Citizen trust rating calculated from verified image reports."
           colorClass="text-cyan-400"
+        />
+        <StatsCard
+          title="Community Validations"
+          value={totalValidations}
+          iconName="ThumbsUp"
+          description="Total community validations submitted across all logged incidents."
+          colorClass="text-violet-400"
+        />
+        <StatsCard
+          title="Avg. Validations / Report"
+          value={avgValidations.toFixed(1)}
+          iconName="BarChart3"
+          description="Average validations received per environmental incident report."
+          colorClass="text-cyan-400"
+        />
+        <StatsCard
+          title="Most Validated"
+          value={mostValidatedTitle}
+          iconName="Award"
+          description="The active environmental incident with the highest community validation rate."
+          colorClass="text-amber-400"
         />
       </div>
 

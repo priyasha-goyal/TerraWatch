@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../services/supabase/client';
 import { PageHeader } from '../../components/common/PageHeader';
+import { upvotesService } from '../../services/upvotes';
 import { 
   Coins, 
   Clock, 
@@ -21,6 +22,7 @@ export const EcoWalletPage: React.FC = () => {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [valLeaderboard, setValLeaderboard] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const balance = user?.ecoCoinBalance ?? 0;
@@ -56,6 +58,10 @@ export const EcoWalletPage: React.FC = () => {
         } else {
           setLeaderboard(leaders || []);
         }
+
+        // Fetch validator leaderboard
+        const valLeaders = await upvotesService.getValidatorLeaderboard();
+        setValLeaderboard(valLeaders || []);
       } catch (err) {
         console.error('Error fetching wallet data:', err);
       } finally {
@@ -187,47 +193,91 @@ export const EcoWalletPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Community Leaderboard */}
-        <div className="glass-panel rounded-2xl p-6 border-forest-900/30 bg-slate-950/20 flex flex-col justify-between">
-          <div>
-            <h3 className="text-sm font-black text-green-900 uppercase tracking-wider font-heading mb-4 flex items-center gap-2">
-              <Award className="h-4 w-4 text-amber-500" />
-              Community Leaderboard
-            </h3>
-            <div className="space-y-2.5">
-              {leaderboard.map((item, index) => {
-                const isCurrentUser = item.id === user.id;
-                return (
-                  <div 
-                    key={item.id} 
-                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl border transition-all ${
-                      isCurrentUser 
-                        ? 'bg-amber-500/10 border-amber-500/35 text-amber-500 font-bold scale-[1.01]' 
-                        : 'bg-slate-900/30 border-slate-800/10 text-slate-300 hover:bg-slate-900/40'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span className={`font-mono text-xs font-bold ${isCurrentUser ? 'text-amber-500' : 'text-slate-500'}`}>
-                        #{index + 1}
-                      </span>
-                      <span className={`text-xs ${isCurrentUser ? 'text-amber-500 font-bold' : 'text-slate-200'}`}>
-                        {anonymizeName(item.full_name)}
+        {/* Leaderboards Column */}
+        <div className="space-y-6">
+          
+          {/* Community Leaderboard */}
+          <div className="glass-panel rounded-2xl p-6 border-forest-900/30 bg-slate-950/20 flex flex-col justify-between">
+            <div>
+              <h3 className="text-sm font-black text-green-900 uppercase tracking-wider font-heading mb-4 flex items-center gap-2">
+                <Award className="h-4 w-4 text-amber-500" />
+                Community Leaderboard
+              </h3>
+              <div className="space-y-2.5">
+                {leaderboard.map((item, index) => {
+                  const isCurrentUser = item.id === user.id;
+                  return (
+                    <div 
+                      key={item.id} 
+                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl border transition-all ${
+                        isCurrentUser 
+                          ? 'bg-amber-500/10 border-amber-500/35 text-amber-500 font-bold scale-[1.01]' 
+                          : 'bg-slate-900/30 border-slate-800/10 text-slate-350 hover:bg-slate-900/40'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className={`font-mono text-xs font-bold ${isCurrentUser ? 'text-amber-500' : 'text-slate-500'}`}>
+                          #{index + 1}
+                        </span>
+                        <span className={`text-xs ${isCurrentUser ? 'text-amber-500 font-bold' : 'text-slate-200'}`}>
+                          {anonymizeName(item.full_name)}
+                        </span>
+                      </div>
+                      <span className="text-xs font-black flex items-center gap-1">
+                        <Coins className="h-3.5 w-3.5 shrink-0" />
+                        {item.eco_coins}
                       </span>
                     </div>
-                    <span className="text-xs font-black flex items-center gap-1">
-                      <Coins className="h-3.5 w-3.5 shrink-0" />
-                      {item.eco_coins}
-                    </span>
-                  </div>
-                );
-              })}
-              {leaderboard.length === 0 && (
-                <p className="text-xs text-slate-500 text-center py-4">No data available</p>
-              )}
+                  );
+                })}
+                {leaderboard.length === 0 && (
+                  <p className="text-xs text-slate-500 text-center py-4">No data available</p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
+          {/* Validator Leaderboard */}
+          <div className="glass-panel rounded-2xl p-6 border-forest-900/30 bg-slate-950/20 flex flex-col justify-between">
+            <div>
+              <h3 className="text-sm font-black text-green-900 uppercase tracking-wider font-heading mb-4 flex items-center gap-2">
+                <Award className="h-4 w-4 text-violet-400" />
+                Top Community Validators 🌍
+              </h3>
+              <div className="space-y-2.5">
+                {valLeaderboard.map((item, index) => {
+                  const isCurrentUser = item.userId === user.id;
+                  return (
+                    <div 
+                      key={item.userId} 
+                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl border transition-all ${
+                        isCurrentUser 
+                          ? 'bg-violet-500/10 border-violet-500/35 text-violet-400 font-bold scale-[1.01]' 
+                          : 'bg-slate-900/30 border-slate-800/10 text-slate-350 hover:bg-slate-900/40'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className={`font-mono text-xs font-bold ${isCurrentUser ? 'text-violet-400' : 'text-slate-500'}`}>
+                          #{index + 1}
+                        </span>
+                        <span className={`text-xs ${isCurrentUser ? 'text-violet-400 font-bold' : 'text-slate-200'}`}>
+                          {item.name}
+                        </span>
+                      </div>
+                      <span className={`text-[10px] font-semibold ${isCurrentUser ? 'text-violet-400' : 'text-slate-400'}`}>
+                        {item.validationCount} {item.validationCount === 1 ? 'report' : 'reports'} validated
+                      </span>
+                    </div>
+                  );
+                })}
+                {valLeaderboard.length === 0 && (
+                  <p className="text-xs text-slate-500 text-center py-4">No validations yet. Be the first!</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       {/* How to Earn Strip */}

@@ -12,6 +12,7 @@ import { ImpactDashboardPage } from '../pages/ImpactDashboard';
 import { AdminDashboardPage } from '../pages/AdminDashboard';
 import { MyReportsPage } from '../pages/MyReports';
 import { EcoWalletPage } from '../pages/EcoWallet';
+import { CommunityFeedPage } from '../pages/CommunityFeed';
 
 // Layout Imports
 import { MainLayout } from '../layouts/MainLayout';
@@ -84,6 +85,14 @@ export const AppRoutes: React.FC = () => {
         element={
           <MainLayout>
             <ImpactDashboardPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path={ROUTES.COMMUNITY_FEED}
+        element={
+          <MainLayout>
+            <CommunityFeedPage />
           </MainLayout>
         }
       />

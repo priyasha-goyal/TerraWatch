@@ -60,3 +60,8 @@ export interface ImpactMetrics {
   biodiversityScore: number; // 0 to 100 index
   ecoCoinsRewarded: number;
 }
+
+export interface ReportWithUpvotes extends Report {
+  upvoteCount: number;
+  hasUpvoted: boolean;
+}
