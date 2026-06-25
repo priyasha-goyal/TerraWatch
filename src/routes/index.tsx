@@ -11,6 +11,7 @@ import { ReportWastePage } from '../pages/ReportWaste';
 import { ImpactDashboardPage } from '../pages/ImpactDashboard';
 import { AdminDashboardPage } from '../pages/AdminDashboard';
 import { MyReportsPage } from '../pages/MyReports';
+import { EcoWalletPage } from '../pages/EcoWallet';
 
 // Layout Imports
 import { MainLayout } from '../layouts/MainLayout';
@@ -110,15 +111,26 @@ export const AppRoutes: React.FC = () => {
       />
 
       <Route
-  path={ROUTES.MY_REPORTS}
-  element={
-    <ProtectedRoute>
-      <MainLayout>
-        <MyReportsPage />
-      </MainLayout>
-    </ProtectedRoute>
-  }
-/>
+        path={ROUTES.MY_REPORTS}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <MyReportsPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path={ROUTES.ECOCOIN_WALLET}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <EcoWalletPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
 
       {/* Authorized Municipal Operations Routes */}
       <Route

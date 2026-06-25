@@ -160,6 +160,20 @@ export const reportsServiceShell = {
       throw error;
     }
 
+if (user) {
+  await supabase.rpc('add_eco_coins', {
+    user_id_input: user.id,
+    amount_input: 10
+  });
+
+  await supabase.from('eco_coin_transactions').insert({
+    user_id: user.id,
+    report_id: data.id,
+    amount: 10,
+    reason: 'Report submitted'
+  });
+}
+
     return {
       id: data.id,
       reporterId: data.user_id,

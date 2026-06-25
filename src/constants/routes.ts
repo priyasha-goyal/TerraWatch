@@ -6,4 +6,5 @@ export const ROUTES = {
   IMPACT: '/impact',
   ADMIN: '/admin',
   MY_REPORTS: '/my-reports',
+  ECOCOIN_WALLET: '/wallet',
 } as const;

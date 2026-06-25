@@ -25,6 +25,7 @@ export const Navbar: React.FC = () => {
   const loggedInLinks = [
     { label: 'My Workspace', path: ROUTES.DASHBOARD, icon: LayoutDashboard },
     { label: 'Report Dumping', path: ROUTES.REPORT_WASTE, icon: PlusCircle },
+    { label: 'My Wallet', path: ROUTES.ECOCOIN_WALLET, icon: Coins },
   ];
 
   const hasAdminAccess = user?.role === 'ADMIN' || user?.role === 'MUNICIPALITY';
@@ -94,10 +95,13 @@ export const Navbar: React.FC = () => {
             {user ? (
               <div className="flex items-center gap-4">
                 {/* EcoCoin Indicator */}
-                <div className="flex items-center gap-1.5 rounded-full border border-[#FDE68A] bg-[#FEF3C7] px-3 h-8 text-xs font-semibold text-[#B45309]">
+                <Link
+                  to={ROUTES.ECOCOIN_WALLET}
+                  className="flex items-center gap-1.5 rounded-full border border-[#FDE68A] bg-[#FEF3C7] px-3 h-8 text-xs font-semibold text-[#B45309] hover:bg-[#FDE68A]/80 transition-colors"
+                >
                   <Coins className="h-4 w-4 text-[#B45309]" />
                   <span>{user.ecoCoinBalance} Coins</span>
-                </div>
+                </Link>
 
                 {/* User Info & LogOut */}
                 <div className="flex items-center gap-3">
@@ -208,10 +212,14 @@ export const Navbar: React.FC = () => {
                     <p className="text-xs text-[#6B7280] capitalize">{user.role.toLowerCase()}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5 rounded-full border border-[#FDE68A] bg-[#FEF3C7] px-2.5 py-1 text-xs font-semibold text-[#B45309]">
+                <Link
+                  to={ROUTES.ECOCOIN_WALLET}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-1.5 rounded-full border border-[#FDE68A] bg-[#FEF3C7] px-2.5 py-1 text-xs font-semibold text-[#B45309] hover:bg-[#FDE68A]/80 transition-colors"
+                >
                   <Coins className="h-3.5 w-3.5 text-[#B45309]" />
                   <span>{user.ecoCoinBalance}</span>
-                </div>
+                </Link>
               </div>
 
               <button

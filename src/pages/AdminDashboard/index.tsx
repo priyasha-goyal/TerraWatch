@@ -32,17 +32,17 @@ export const AdminDashboardPage: React.FC = () => {
     const loadReports = async () => {
       const data = await reportsServiceShell.getReports();
       setReports(data);
-  
+
       if (data.length > 0) {
         setSelectedReport(data[0]);
       }
     };
-  
+
     loadReports();
-  
+
     const channel =
       reportsServiceShell.subscribeToReports(loadReports);
-  
+
     return () => {
       supabase.removeChannel(channel);
     };
@@ -62,10 +62,110 @@ export const AdminDashboardPage: React.FC = () => {
   //   };
   // }, []);
 
+  // const handleUpdateStatus = async (
+  //   reportId: string,
+  //   nextStatus: ReportStatus
+  // ) => {
+  //   try {
+
+  //     const report = reports.find(
+  //       r => r.id === reportId
+  //     );
+
+  //     const success =
+  //       await reportsServiceShell.updateReportStatus(
+  //         reportId,
+  //         nextStatus
+  //       );
+
+  //     if (
+  //       success &&
+  //       report?.reporterId
+  //     ) {
+
+  //       const { ecoCoinService } =
+  //         await import(
+  //           '../../services/ecocoins'
+  //         );
+
+  //       if (
+  //         nextStatus === REPORT_STATUS.INVESTIGATING
+  //       ) {
+  //         await ecoCoinService.addCoins(
+  //           report.reporterId,
+  //           40
+  //         );
+  //       }
+
+  //       if (
+  //         nextStatus === REPORT_STATUS.CLEANUP_SCHEDULED
+  //       ) {
+  //         await ecoCoinService.addCoins(
+  //           report.reporterId,
+  //           25
+  //         );
+  //       }
+
+  //       if (
+  //         nextStatus === REPORT_STATUS.RESOLVED
+  //       ) {
+  //         await ecoCoinService.addCoins(
+  //           report.reporterId,
+  //           50
+  //         );
+  //       }
+
+  //       setReports((prev) =>
+  //         prev.map((rep) =>
+  //           rep.id === reportId
+  //             ? {
+  //               ...rep,
+  //               status: nextStatus
+  //             }
+  //             : rep
+  //         )
+  //       );
+  //     }
+
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // };
+
   const handleUpdateStatus = async (reportId: string, nextStatus: ReportStatus) => {
     try {
       const success = await reportsServiceShell.updateReportStatus(reportId, nextStatus);
       if (success) {
+        const resolvedReport = reports.find((r) => r.id === reportId);
+        if (resolvedReport) {
+          let amount = 0;
+          let reason = '';
+          if (nextStatus === 'INVESTIGATING') {
+            amount = 40;
+            reason = 'Report approved — under investigation';
+          } else if (nextStatus === 'CLEANUP_SCHEDULED') {
+            amount = 25;
+            reason = 'Cleanup scheduled for your report';
+          } else if (nextStatus === 'RESOLVED') {
+            amount = 50;
+            reason = 'Report resolved — cleanup complete';
+          }
+
+          if (amount > 0) {
+            await supabase.rpc('add_eco_coins', {
+              user_id_input: resolvedReport.reporterId,
+              amount_input: amount
+            });
+
+            await supabase.from('eco_coin_transactions').insert({
+              user_id: resolvedReport.reporterId,
+              report_id: reportId,
+              amount: amount,
+              reason: reason
+            });
+          }
+        }
+
         setReports((prev) =>
           prev.map((rep) => {
             if (rep.id === reportId) {
@@ -131,7 +231,7 @@ export const AdminDashboardPage: React.FC = () => {
 
       {/* Moderation Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+
         {/* Table list - Left 2 Columns */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center gap-2 border-b border-forest-900/10 pb-3">
@@ -155,7 +255,7 @@ export const AdminDashboardPage: React.FC = () => {
 
           {selectedReport ? (
             <div className="glass-panel rounded-xl overflow-hidden border border-forest-900/40 p-5 space-y-4 animate-fade-in-up">
-              
+
               {/* Photo representation */}
               <div className="h-40 w-full rounded-lg bg-slate-950 overflow-hidden border border-slate-900">
                 {selectedReport.imageUrl ? (
@@ -185,16 +285,15 @@ export const AdminDashboardPage: React.FC = () => {
                 <span className={`px-2 py-0.5 rounded text-[9px] uppercase font-bold bg-slate-950 text-slate-300`}>
                   {WASTE_TYPE_DETAILS[selectedReport.wasteType]?.label || selectedReport.wasteType}
                 </span>
-                <span className={`px-2 py-0.5 rounded text-[9px] uppercase font-bold bg-slate-950 ${
-                  selectedReport.severity === 'CRITICAL' ? 'text-rose-400' : 'text-amber-400'
-                }`}>
+                <span className={`px-2 py-0.5 rounded text-[9px] uppercase font-bold bg-slate-950 ${selectedReport.severity === 'CRITICAL' ? 'text-rose-400' : 'text-amber-400'
+                  }`}>
                   {selectedReport.severity}
                 </span>
               </div>
 
               <div className="text-xs text-slate-350 leading-relaxed border-t border-slate-900/50 pt-3 space-y-2">
                 <p>{selectedReport.description}</p>
-                
+
                 <div className="text-[10px] text-green-800 leading-normal bg-green-50 p-2.5 rounded-xl border border-green-200 space-y-0.5">
                   <p><strong>Geotag address:</strong> {selectedReport.address}</p>
                   <p><strong>GPS coordinates:</strong> {selectedReport.latitude}, {selectedReport.longitude}</p>
@@ -227,7 +326,7 @@ export const AdminDashboardPage: React.FC = () => {
                     Mark Cleaned & Resolved
                   </button>
                 )}
-                
+
                 {selectedReport.status !== REPORT_STATUS.RESOLVED && selectedReport.status !== REPORT_STATUS.REJECTED && (
                   <button
                     onClick={() => handleUpdateStatus(selectedReport.id, REPORT_STATUS.REJECTED)}

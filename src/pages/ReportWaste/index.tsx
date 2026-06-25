@@ -8,7 +8,7 @@ import { reportsServiceShell } from '../../services/reports';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 
 export const ReportWastePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -32,6 +32,7 @@ export const ReportWastePage: React.FC = () => {
         reporterName: user.name,
       });
 
+      await refreshUser();
       setNewReportId(newReport.id);
       setIsSuccess(true);
     } catch (e: any) {
@@ -66,6 +67,9 @@ export const ReportWastePage: React.FC = () => {
           
           <div className="space-y-2">
             <h2 className="text-2xl font-black font-heading text-white">Incident Successfully Logged!</h2>
+            <p className="text-sm font-semibold text-emerald-400">
+              ✅ Report submitted! +10 EcoCoins earned
+            </p>
             <p className="text-xs text-slate-400 leading-relaxed max-w-md mx-auto">
               Your report <strong>#{newReportId}</strong> has been logged to the TerraWatch municipal coordination pool.
             </p>

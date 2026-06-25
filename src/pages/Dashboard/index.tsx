@@ -10,9 +10,11 @@ import { ReportCard } from '../../components/reports/ReportCard';
 import type { Report } from '../../types';
 import { Plus, Layers, ShieldAlert } from 'lucide-react';
 import { reportsServiceShell } from '../../services/reports';
+import { supabase } from '../../services/supabase/client';
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
+  const [weeklyCoins, setWeeklyCoins] = useState(0);
   const navigate = useNavigate();
   const [reports, setReports] = useState<Report[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
@@ -36,6 +38,15 @@ export const DashboardPage: React.FC = () => {
         if (!isMounted) return;
 
         setReports(fetchedReports);
+
+        const { data: txns } = await supabase
+          .from('eco_coin_transactions')
+          .select('amount')
+          .eq('user_id', user.id)
+          .gte('created_at', new Date(Date.now() - 7 * 86400000).toISOString());
+
+        const weeklyEarned = txns?.reduce((sum, t) => sum + t.amount, 0) || 0;
+        setWeeklyCoins(weeklyEarned);
 
         const reportActivities: ActivityItem[] = fetchedReports.map(r => ({
           id: `act-rep-${r.id}`,
@@ -97,7 +108,7 @@ export const DashboardPage: React.FC = () => {
           value={`${user.ecoCoinBalance} Coins`}
           iconName="Coins"
           description="Exchangeable for public transit offsets and ecological vendor credits."
-          trend={{ value: '+50 this week', isPositive: true }}
+          trend={{ value: `+${weeklyCoins} this week`, isPositive: weeklyCoins > 0 }}
           colorClass="text-yellow-400"
         />
         <StatsCard

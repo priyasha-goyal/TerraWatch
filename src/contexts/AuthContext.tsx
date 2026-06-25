@@ -8,6 +8,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -128,14 +129,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
   const logout = async () => {
-  await supabase.auth.signOut();
-  setUser(null);
-};
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
+  const refreshUser = async () => {
+    if (!user) return;
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (profile) {
+      setUser((prev) =>
+        prev
+          ? {
+              ...prev,
+              name: profile.full_name || prev.name,
+              role: profile.role || prev.role,
+              ecoCoinBalance: profile.eco_coins ?? 0,
+            }
+          : null
+      );
+    }
+  };
 
   const isAuthenticated = !!user;
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
