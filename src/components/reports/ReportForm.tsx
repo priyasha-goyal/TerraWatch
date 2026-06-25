@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { WASTE_TYPES, WASTE_TYPE_DETAILS } from '../../constants/status';
 import type { Report } from '../../types';
-import { Camera, MapPin, Loader2 } from 'lucide-react';
+import { Camera, MapPin, Loader2, Brain, AlertCircle, AlertTriangle } from 'lucide-react';
+import { aiServiceShell, type AIDetectionResult } from '../../services/ai';
 
 interface ReportFormProps {
   onSubmit: (report: Omit<Report, 'id' | 'reporterId' | 'createdAt' | 'updatedAt' | 'status'> & {
@@ -23,8 +24,11 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSubmit, isSubmitting =
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isAnonymous, setIsAnonymous] = useState(true);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [aiResult, setAiResult] = useState<AIDetectionResult | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -33,6 +37,26 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSubmit, isSubmitting =
     // Show local image preview
     const objectUrl = URL.createObjectURL(file);
     setImageUrl(objectUrl);
+
+    setIsAnalyzing(true);
+    setAiResult(null);
+    setAiError(null);
+    try {
+      const result = await aiServiceShell.detectWaste(file);
+      if (result) {
+        setAiResult(result);
+        if (result.suggestedTitle) setTitle(result.suggestedTitle);
+        if (result.suggestedDescription) setDescription(result.suggestedDescription);
+        setWasteType(result.wasteType as any);
+        setSeverity(result.severity);
+      } else {
+        setAiError('Could not analyze image. Please fill in details manually.');
+      }
+    } catch {
+      setAiError('Analysis failed. Please fill in details manually.');
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleGetCurrentLocation = () => {
@@ -70,6 +94,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSubmit, isSubmitting =
       imageUrl: imageUrl || undefined,
       imageFile,
       isAnonymous,
+      aiConfidence: aiResult?.confidence,
     });
   };
 
@@ -82,7 +107,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSubmit, isSubmitting =
         <div className="space-y-4">
           <label className="block text-sm font-semibold text-[#374151]">Incident Photograph Upload</label>
 
-          <div className="relative h-60 w-full rounded-xl border border-dashed border-[#CCDCD1] bg-[#FAFAF8] flex flex-col items-center justify-center overflow-hidden transition-all hover:border-[#2E7D32]/60 hover:bg-[#F5F7F5]">
+          <div className={`relative h-60 w-full rounded-xl border border-dashed border-[#CCDCD1] bg-[#FAFAF8] flex flex-col items-center justify-center overflow-hidden transition-all hover:border-[#2E7D32]/60 hover:bg-[#F5F7F5] ${isAnalyzing ? 'ring-2 ring-emerald-400 ring-offset-1 animate-pulse' : ''} ${aiResult ? 'ring-2 ring-emerald-500 ring-offset-1' : ''}`}>
             {imageUrl ? (
               <>
                 <img src={imageUrl} alt="Preview" className="h-full w-full object-cover" />
@@ -104,10 +129,72 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onSubmit, isSubmitting =
           </div>
 
           {imageUrl && (
-            <div className="rounded-xl border border-[#E5EDE8] bg-[#FAFAF8] p-4 text-xs text-[#6B7280]">
-              <p className="font-semibold text-[#374151] mb-1">OpenAI Vision Triage Placeholder</p>
-              <p className="text-[#6B7280]">Image uploaded successfully. Real-time vision-based classification and composition analysis will run automatically upon backend integration.</p>
-            </div>
+            <>
+              {isAnalyzing && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/20 p-4 text-xs text-emerald-700 flex items-center gap-2.5 animate-pulse">
+                  <Brain className="h-5 w-5 text-emerald-500 animate-spin shrink-0" />
+                  <span className="font-semibold">AI analyzing waste composition...</span>
+                </div>
+              )}
+
+              {!isAnalyzing && aiResult && (
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-5 text-xs text-slate-750 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-emerald-700 text-sm">✅ AI Classification Complete</span>
+                    <span className="inline-flex items-center rounded-full bg-amber-100 border border-amber-200 px-2.5 py-0.5 text-[10px] font-bold text-amber-800">
+                      {Math.round(aiResult.confidence * 100)}% Confidence
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-1.5">
+                    <span className="font-semibold text-slate-500 block">Detected Items:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {aiResult.detectedItems.map((item, idx) => (
+                        <span key={idx} className="bg-slate-200/60 border border-slate-300/30 text-slate-700 px-2 py-0.5 rounded text-[10px] font-medium">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 bg-white/40 border border-slate-200/20 rounded-lg p-2.5">
+                    <div className="flex items-center gap-1.5 text-amber-800 font-semibold mb-1">
+                      <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+                      <span>Ecological Threat:</span>
+                    </div>
+                    <p className="italic text-slate-650 leading-relaxed">{aiResult.ecologicalThreatNotes}</p>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-200/30">
+                    <p className="text-slate-600 font-semibold">
+                      <strong>AI Summary:</strong> {WASTE_TYPE_DETAILS[aiResult.wasteType as keyof typeof WASTE_TYPES]?.label || aiResult.wasteType} waste detected. Severity: {aiResult.severity}.
+                    </p>
+                  </div>
+
+                  <p className="text-[10px] text-slate-400 italic">
+                    ⚡ Form auto-filled — review and adjust if needed
+                  </p>
+                </div>
+              )}
+
+              {!isAnalyzing && aiError && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50/20 p-4 text-xs text-amber-850 space-y-1">
+                  <div className="flex items-center gap-2 font-bold text-amber-700">
+                    <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600" />
+                    <span>Analysis Notice</span>
+                  </div>
+                  <p className="text-amber-700 font-medium">{aiError}</p>
+                  <p className="text-[10px] text-slate-400">Please fill in the form fields manually</p>
+                </div>
+              )}
+
+              {!isAnalyzing && !aiResult && !aiError && (
+                <div className="rounded-xl border border-[#E5EDE8] bg-[#FAFAF8] p-4 text-xs text-[#6B7280]">
+                  <p className="font-semibold text-[#374151] mb-1">OpenAI Vision Triage Placeholder</p>
+                  <p className="text-[#6B7280]">Image uploaded successfully. Real-time vision-based classification and composition analysis will run automatically upon backend integration.</p>
+                </div>
+              )}
+            </>
           )}
         </div>
 

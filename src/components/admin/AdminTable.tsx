@@ -57,7 +57,14 @@ export const AdminTable: React.FC<AdminTableProps> = ({
                     <ShieldAlert className="h-4.5 w-4.5 text-[#2E7D32]" />
                   </div>
                   <div>
-                    <span className="font-bold text-[#1F2937] block text-sm">{report.title}</span>
+                    <span className="font-bold text-[#1F2937] text-sm flex items-center flex-wrap gap-1.5">
+                      {report.title}
+                      {report.aiConfidence !== undefined && report.aiConfidence > 0 && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
+                          🤖 AI Verified · {Math.round(report.aiConfidence * 100)}%
+                        </span>
+                      )}
+                    </span>
                     <span className="text-[10px] text-[#6B7280] block mt-0.5">{report.address}</span>
                   </div>
                 </div>

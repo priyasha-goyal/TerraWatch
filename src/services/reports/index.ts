@@ -122,6 +122,7 @@ export const reportsServiceShell = {
   createReport: async (
     reportData: Omit<Report, 'id' | 'createdAt' | 'updatedAt' | 'status'> & {
       imageFile?: File | null;
+      aiConfidence?: number;
     }
   ): Promise<Report> => {
 
@@ -138,6 +139,10 @@ export const reportsServiceShell = {
       imageUrl = await uploadReportImage(reportData.imageFile);
     }
 
+    const aiSummary = reportData.aiConfidence 
+      ? `${reportData.wasteType} waste detected. Severity: ${reportData.severity}. Confidence: ${Math.round(reportData.aiConfidence * 100)}%. ${reportData.description}`
+      : null;
+
     const { data, error } = await supabase
       .from('reports')
       .insert({
@@ -150,7 +155,7 @@ export const reportsServiceShell = {
         waste_type: reportData.wasteType,
         severity: reportData.severity,
         is_anonymous: reportData.isAnonymous ?? true,
-        ai_summary: null,
+        ai_summary: aiSummary,
         status: 'PENDING'
       })
       .select()

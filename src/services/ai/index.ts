@@ -1,12 +1,4 @@
-/**
- * AI Service Integration Shell (OpenAI Vision / Waste Detection)
- * 
- * Future Integration Plan:
- * 1. Install openai package or establish edge-function relays
- * 2. Configure OpenAI API Key securely
- * 3. Send image binary to gpt-4o/vision preview
- * 4. Parse JSON recommendations (waste type, estimated severity, confidence, ecological threat)
- */
+import { supabase } from '../supabase/client';
 
 export interface AIDetectionResult {
   wasteType: string;
@@ -14,12 +6,40 @@ export interface AIDetectionResult {
   confidence: number;
   detectedItems: string[];
   ecologicalThreatNotes: string;
+  suggestedTitle?: string;
+  suggestedDescription?: string;
 }
 
 export const aiServiceShell = {
   detectWaste: async (imageFile: File): Promise<AIDetectionResult | null> => {
-    console.log('AI Service: OpenAI Vision API integration placeholder for', imageFile.name);
-    // Real integration will call OpenAI Vision API here and parse recommendations
-    return null;
+    try {
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(imageFile);
+        reader.onload = () => {
+          const resultStr = reader.result as string;
+          const base64Data = resultStr.split(',')[1];
+          resolve(base64Data);
+        };
+        reader.onerror = (error) => reject(error);
+      });
+
+      const imageBase64 = await base64Promise;
+      const mimeType = imageFile.type;
+
+      const { data, error } = await supabase.functions.invoke('classify-waste', {
+        body: { imageBase64, mimeType }
+      });
+
+      if (error || !data) {
+        console.error('Edge function classify-waste invocation error:', error);
+        return null;
+      }
+
+      return data as AIDetectionResult;
+    } catch (err) {
+      console.error('AI detectWaste failed:', err);
+      return null;
+    }
   }
 };
